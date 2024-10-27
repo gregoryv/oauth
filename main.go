@@ -1,9 +1,7 @@
 package main
 
 import (
-	"embed"
 	"fmt"
-	"html/template"
 	"log"
 	"net/http"
 	"net/url"
@@ -13,23 +11,21 @@ import (
 func main() {
 	bind := ":8100"
 	h := Endpoints()
-	log.SetFlags(0)
+	debug.Println("listen", bind)
 
 	if err := http.ListenAndServe(bind, h); err != nil {
 		log.Fatal(err)
 	}
 }
 
-func Endpoints() *http.ServeMux {
+func Endpoints() http.Handler {
 	mx := http.NewServeMux()
 
-	mx.Handle("/", frontpage())
-
-	mx.Handle("/dash", dash())
-
 	mx.Handle("/setup", setup())
-	mx.HandleFunc("/oauth/redirect", redirect())
-	return mx
+	mx.Handle("/oauth/redirect", redirect())
+	mx.Handle("/dash", dash())
+	mx.Handle("/", frontpage())
+	return logware(mx)
 }
 
 func dash() http.HandlerFunc {
@@ -57,17 +53,3 @@ func frontpage() http.HandlerFunc {
 		page.ExecuteTemplate(w, "index.html", m)
 	}
 }
-
-func init() {
-	page = template.Must(
-		template.New("").Funcs(funcMap).ParseFS(asset, "htdocs/*"),
-	)
-}
-
-var page *template.Template
-var funcMap = template.FuncMap{
-	"doX": func() string { return "x" },
-}
-
-//go:embed htdocs
-var asset embed.FS
