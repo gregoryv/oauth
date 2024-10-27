@@ -60,6 +60,27 @@ func redirect() http.HandlerFunc {
 			return
 		}
 
+		// wip check if account exists
+		{
+			r, _ := http.NewRequest("GET", "https://api.github.com/user", nil)
+			r.Header.Set("Accept", "application/vnd.github.v3+json")
+			r.Header.Set("Authorization", "token "+t.AccessToken)
+			resp, err := httpClient.Do(r)
+			if err != nil {
+				debug.Print(err)
+				w.WriteHeader(http.StatusInternalServerError)
+				return
+			}
+			defer resp.Body.Close()
+
+			m := make(map[string]any)
+			if err := json.NewDecoder(resp.Body).Decode(&m); err != nil {
+				debug.Print(err)
+				w.WriteHeader(http.StatusInternalServerError)
+				return
+			}
+			debug.Print(m)
+		}
 		// redirect based on state
 		state := r.FormValue("state")
 		var loc string
