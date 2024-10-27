@@ -40,12 +40,11 @@ func dash() http.HandlerFunc {
 
 func setup() http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
-		host := "https://github.com"
-		path := "/login/oauth/authorize"
+		gitlabAuth := "https://github.com/login/oauth/authorize"
 		q := url.Values{}
 		q.Set("client_id", os.Getenv("GITLAB_OAUTH_CLIENTID"))
 		q.Set("redirect_uri", "http://46.59.52.76:8100/oauth/redirect")
-		url := fmt.Sprintf("%s%s?%s", host, path, q.Encode())
+		url := fmt.Sprintf("%s?%s", gitlabAuth, q.Encode())
 		http.Redirect(w, r, url, http.StatusSeeOther)
 	}
 }
