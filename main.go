@@ -22,13 +22,36 @@ func main() {
 func Endpoints() *http.ServeMux {
 	mx := http.NewServeMux()
 
-	fs := http.FileServer(http.Dir("htdocs"))
-	mx.Handle("/", fs)
-	mx.HandleFunc("/oauth/redirect", redirect())
+	mx.Handle("/", frontpage())
+	authLand := "/welcome.html"
+	mx.Handle(authLand, welcome())
+	mx.HandleFunc("/oauth/redirect", redirect(authLand))
 	return mx
 }
 
-func redirect() http.HandlerFunc {
+func welcome() http.HandlerFunc {
+	fs := http.FileServer(http.Dir("htdocs"))
+	return fs.ServeHTTP
+}
+
+func frontpage() http.HandlerFunc {
+	q := url.Values{}
+	q.Set("client_id", os.Getenv("GITLAB_OAUTH_CLIENTID"))
+	q.Set("client_secret", os.Getenv("GITLAB_OAUTH_SECRET"))
+	q.Set("redirect_uri", "http://46.59.52.76:8100/oauth/redirect")
+	query := q.Encode()
+
+	return func(w http.ResponseWriter, r *http.Request) {
+		fmt.Fprintf(w, `<!DOCTYPE html>
+
+<a href="https://github.com/login/oauth/authorize?%s">
+      Login with github
+</a>
+`, query)
+	}
+}
+
+func redirect(authLand string) http.HandlerFunc {
 	httpClient := http.DefaultClient
 	return func(w http.ResponseWriter, r *http.Request) {
 		// First, we need to get the value of the `code` query param
@@ -79,7 +102,7 @@ func redirect() http.HandlerFunc {
 
 		// Finally, send a response to redirect the user to the
 		// "welcome" page with the access token
-		w.Header().Set("Location", "/welcome.html?access_token="+t.AccessToken)
+		w.Header().Set("Location", authLand+"?access_token="+t.AccessToken)
 		w.WriteHeader(http.StatusFound)
 	}
 }
