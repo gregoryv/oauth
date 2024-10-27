@@ -24,13 +24,21 @@ func Endpoints() http.Handler {
 	mx.Handle("/login", login())
 	mx.Handle("/oauth/redirect", redirect())
 	mx.Handle("/dash", dash())
+	mx.Handle("/newloc", newLocation())
 	mx.Handle("/", frontpage())
 	return logware(mx)
 }
 
-func dash() http.HandlerFunc {
+func loc(token string, w http.ResponseWriter, r *http.Request) {
+}
+
+func frontpage() http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
-		page.ExecuteTemplate(w, "dash.html", nil)
+		m := map[string]any{
+			"PathNewLocation": "/login?state=new-location",
+			"PathLogin":       "/login",
+		}
+		page.ExecuteTemplate(w, "index.html", m)
 	}
 }
 
@@ -46,11 +54,14 @@ func login() http.HandlerFunc {
 	}
 }
 
-func frontpage() http.HandlerFunc {
+func dash() http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
-		m := map[string]any{
-			"PathNewLocation": "/login?state=new-location",
-		}
-		page.ExecuteTemplate(w, "index.html", m)
+		page.ExecuteTemplate(w, "dash.html", nil)
+	}
+}
+
+func newLocation() http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		page.ExecuteTemplate(w, "new_location.html", nil)
 	}
 }

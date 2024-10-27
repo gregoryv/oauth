@@ -61,10 +61,18 @@ func redirect() http.HandlerFunc {
 			return
 		}
 
-		// Finally, send a response to redirect the user to the
-		// "welcome" page with the access token
-		path := "/dash" // wip use state to decide where to go
-		w.Header().Set("Location", path+"?access_token="+t.AccessToken)
+		state := r.FormValue("state")
+		var loc string
+		switch state {
+		case "new-location":
+			loc = "/newloc"
+
+		default:
+			loc = "/dash"
+		}
+		loc += "?access_token=" + t.AccessToken
+
+		w.Header().Set("Location", loc)
 		w.WriteHeader(http.StatusFound)
 	}
 }
