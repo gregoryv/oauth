@@ -21,7 +21,7 @@ func main() {
 func Endpoints() http.Handler {
 	mx := http.NewServeMux()
 
-	mx.Handle("/setup", setup())
+	mx.Handle("/login", login())
 	mx.Handle("/oauth/redirect", redirect())
 	mx.Handle("/dash", dash())
 	mx.Handle("/", frontpage())
@@ -34,12 +34,13 @@ func dash() http.HandlerFunc {
 	}
 }
 
-func setup() http.HandlerFunc {
+func login() http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		gitlabAuth := "https://github.com/login/oauth/authorize"
 		q := url.Values{}
 		q.Set("client_id", os.Getenv("GITLAB_OAUTH_CLIENTID"))
 		q.Set("redirect_uri", "http://46.59.52.76:8100/oauth/redirect")
+		q.Set("state", r.FormValue("state"))
 		url := fmt.Sprintf("%s?%s", gitlabAuth, q.Encode())
 		http.Redirect(w, r, url, http.StatusSeeOther)
 	}
@@ -48,7 +49,7 @@ func setup() http.HandlerFunc {
 func frontpage() http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		m := map[string]any{
-			"PathSetup": "/setup",
+			"PathNewLocation": "/login?state=new-location",
 		}
 		page.ExecuteTemplate(w, "index.html", m)
 	}

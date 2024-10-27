@@ -17,7 +17,11 @@ func logware(next http.Handler) http.HandlerFunc {
 		// Initialize the status to 200 in case WriteHeader is not called
 		rec := statusRecorder{w, 200}
 		next.ServeHTTP(&rec, r)
-		debug.Println(r.Method, r.URL.Path, rec.status, time.Since(start))
+		var query string
+		if v := r.URL.RawQuery; v != "" {
+			query += "?" + v
+		}
+		debug.Println(r.Method, r.URL.Path+query, rec.status, time.Since(start))
 	}
 }
 
