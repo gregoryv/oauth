@@ -8,15 +8,15 @@ import (
 	"os"
 )
 
-// redirect handles gitlabs oauth redirect call and redirects to the
-// authLand path if correctly authenticated.
+// redirect handles githubs oauth redirect call and redirects to page
+// depending on state
 func redirect() http.HandlerFunc {
 	httpClient := http.DefaultClient
 	return func(w http.ResponseWriter, r *http.Request) {
 		// First, we need to get the value of the `code` query param
 		err := r.ParseForm()
 		if err != nil {
-			fmt.Fprintf(os.Stdout, "could not parse query: %v", err)
+			debug.Printf("could not parse query: %v", err)
 			w.WriteHeader(http.StatusBadRequest)
 			return
 		}
@@ -34,33 +34,33 @@ func redirect() http.HandlerFunc {
 		)
 		req, err := http.NewRequest("POST", reqURL, nil)
 		if err != nil {
-			fmt.Fprintf(os.Stdout, "could not create HTTP request: %v", err)
+			debug.Printf("could not create HTTP request: %v", err)
 			w.WriteHeader(http.StatusBadRequest)
 			return
 		}
-		// We set this header since we want the response
-		// as JSON
+		// We set this header since we want the response as JSON
 		req.Header.Set("accept", "application/json")
 
 		// Send out the HTTP request
 		res, err := httpClient.Do(req)
 		if err != nil {
-			fmt.Fprintf(os.Stdout, "could not send HTTP request: %v", err)
+			debug.Printf("could not send HTTP request: %v", err)
 			w.WriteHeader(http.StatusInternalServerError)
 			return
 		}
 		defer res.Body.Close()
 
-		// Parse the request body into the `OAuthAccessResponse` struct
+		// read out the access token
 		var t struct {
 			AccessToken string `json:"access_token"`
 		}
 		if err := json.NewDecoder(res.Body).Decode(&t); err != nil {
-			fmt.Fprintf(os.Stdout, "could not parse JSON response: %v", err)
+			debug.Printf("could not parse JSON response: %v", err)
 			w.WriteHeader(http.StatusBadRequest)
 			return
 		}
 
+		// redirect based on state
 		state := r.FormValue("state")
 		var loc string
 		switch state {
@@ -70,9 +70,42 @@ func redirect() http.HandlerFunc {
 		default:
 			loc = "/dash"
 		}
-		loc += "?access_token=" + t.AccessToken
+		cookie := http.Cookie{
+			Name:  "servant-token",
+			Value: t.AccessToken,
+		}
+		http.SetCookie(w, &cookie)
 
 		w.Header().Set("Location", loc)
 		w.WriteHeader(http.StatusFound)
 	}
 }
+
+/*
+<script>
+    // We can get the token from the "access_token" query
+    // param, available in the browsers "location" global
+    const query = window.location.search.substring(1);
+    const token = query.split("access_token=")[1];
+
+    // Call the user info API using the fetch browser library
+    fetch("https://api.github.com/user", {
+      headers: {
+        // This header informs the Github API about the API version
+        Accept: "application/vnd.github.v3+json",
+        // Include the token in the Authorization header
+        Authorization: "token " + token,
+      },
+    })
+      // Parse the response as JSON
+      .then((res) => res.json())
+      .then((res) => {
+        // Once we get the response (which has many fields)
+        // Documented here: https://developer.github.com/v3/users/#get-the-authenticated-user
+        // Write "Welcome <user name>" to the documents body
+        const nameNode = document.createTextNode(`Welcome, ${res.name}`);
+        document.body.appendChild(nameNode);
+	console.log(res);
+      });
+  </script>
+*/
