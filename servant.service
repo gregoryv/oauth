@@ -1,0 +1,18 @@
+[Unit]
+Description=servant
+After=auditd.service systemd-user-sessions.service time-sync.target
+
+[Service]
+User=gregory
+TimeoutStartSec=0
+Type=simple
+KillMode=process
+Environment="D=t"
+EnvironmentFile=/var/local/servant/env
+WorkingDirectory=/var/local/servant
+ExecStart=/home/gregory/bin/servant
+Restart=always
+LimitNOFILE=5555
+
+[Install]
+WantedBy=multi-user.target
