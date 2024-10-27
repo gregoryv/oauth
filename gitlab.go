@@ -10,7 +10,7 @@ import (
 
 // redirect handles gitlabs oauth redirect call and redirects to the
 // authLand path if correctly authenticated.
-func redirect(authLand string) http.HandlerFunc {
+func redirect() http.HandlerFunc {
 	httpClient := http.DefaultClient
 	return func(w http.ResponseWriter, r *http.Request) {
 		// First, we need to get the value of the `code` query param
@@ -63,7 +63,8 @@ func redirect(authLand string) http.HandlerFunc {
 
 		// Finally, send a response to redirect the user to the
 		// "welcome" page with the access token
-		w.Header().Set("Location", authLand+"?access_token="+t.AccessToken)
+		path := "/dash" // wip use state to decide where to go
+		w.Header().Set("Location", path+"?access_token="+t.AccessToken)
 		w.WriteHeader(http.StatusFound)
 	}
 }
