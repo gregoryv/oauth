@@ -8,6 +8,8 @@ import (
 	"os"
 )
 
+// redirect handles gitlabs oauth redirect call and redirects to the
+// authLand path if correctly authenticated.
 func redirect(authLand string) http.HandlerFunc {
 	httpClient := http.DefaultClient
 	return func(w http.ResponseWriter, r *http.Request) {

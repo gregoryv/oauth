@@ -1,10 +1,10 @@
 package main
 
 import (
-	"fmt"
+	"embed"
+	"html/template"
 	"log"
 	"net/http"
-	"net/url"
 	"os"
 )
 
@@ -34,18 +34,26 @@ func welcome() http.HandlerFunc {
 }
 
 func frontpage() http.HandlerFunc {
-	q := url.Values{}
-	q.Set("client_id", os.Getenv("GITLAB_OAUTH_CLIENTID"))
-	q.Set("client_secret", os.Getenv("GITLAB_OAUTH_SECRET"))
-	q.Set("redirect_uri", "http://46.59.52.76:8100/oauth/redirect")
-	query := q.Encode()
 
 	return func(w http.ResponseWriter, r *http.Request) {
-		fmt.Fprintf(w, `<!DOCTYPE html>
-
-<a href="https://github.com/login/oauth/authorize?%s">
-      Login with github
-</a>
-`, query)
+		m := map[string]any{
+			"ClientID":         os.Getenv("GITLAB_OAUTH_CLIENTID"),
+			"SetupLocationURI": "http://46.59.52.76:8100/oauth/redirect",
+		}
+		HTML.ExecuteTemplate(w, "index.html", m)
 	}
 }
+
+func init() {
+	HTML = template.Must(
+		template.New("").Funcs(funcMap).ParseFS(asset, "htdocs/*"),
+	)
+}
+
+var HTML *template.Template
+var funcMap = template.FuncMap{
+	"doX": func() string { return "x" },
+}
+
+//go:embed htdocs
+var asset embed.FS
