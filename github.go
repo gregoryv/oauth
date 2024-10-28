@@ -25,8 +25,8 @@ func redirect() http.HandlerFunc {
 		// Next, lets for the HTTP request to call the github oauth
 		// endpoint to get our access token
 		q := url.Values{}
-		q.Set("client_id", os.Getenv("GITLAB_OAUTH_CLIENTID"))
-		q.Set("client_secret", os.Getenv("GITLAB_OAUTH_SECRET"))
+		q.Set("client_id", os.Getenv("OAUTH_GITHUB_CLIENTID"))
+		q.Set("client_secret", os.Getenv("OAUTH_GITHUB_SECRET"))
 		q.Set("code", code)
 		query := q.Encode()
 		reqURL := fmt.Sprintf(
