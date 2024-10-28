@@ -6,6 +6,7 @@ import (
 	"net/http"
 	"net/url"
 	"os"
+	"time"
 )
 
 // redirect handles githubs oauth redirect call and redirects to page
@@ -79,26 +80,28 @@ func redirect() http.HandlerFunc {
 				w.WriteHeader(http.StatusInternalServerError)
 				return
 			}
-			debug.Print(m)
+			debug.Println(m["name"], m["email"], m["location"])
 		}
 		// redirect based on state
 		state := r.FormValue("state")
 		var loc string
 		switch state {
 		case "new-location":
-			loc = "/newloc"
+			loc = "/location/new"
 
 		default:
 			loc = "/dash"
 		}
+		expiration := time.Now().Add(5 * time.Minute)
 		cookie := http.Cookie{
-			Name:  "servant-token",
-			Value: t.AccessToken,
+			Name:    "token",
+			Value:   t.AccessToken,
+			Expires: expiration,
 		}
 		http.SetCookie(w, &cookie)
-
-		w.Header().Set("Location", loc)
-		w.WriteHeader(http.StatusFound)
+		// you cannot set cookie in a redirect response, respond with a page that then redirect
+		// maybe /enter?redirect_uri=/dash
+		http.Redirect(w, r, loc, http.StatusFound)
 	}
 }
 

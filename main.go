@@ -14,7 +14,9 @@ func main() {
 
 	h := logware(
 		// wip adding the AuthLayer here, we get an endless loop of redirects?!
-		Endpoints(),
+		AuthLayer(
+			Endpoints(),
+		),
 	)
 
 	if err := http.ListenAndServe(bind, h); err != nil {
@@ -23,18 +25,21 @@ func main() {
 }
 
 func AuthLayer(next http.Handler) *http.ServeMux {
-	h := protect(next)
 	mx := http.NewServeMux()
-	mx.Handle("/dash", h)
-	mx.Handle("/location/new", h)
-	// everything else
-	mx.Handle("/", next)
+	// explicitly set public patterns so that we don't accidently
+	// forget to protect a new endpoint
+	mx.Handle("/login", next)
+	mx.Handle("/oauth/redirect", next)
+	mx.Handle("/{$}", next)
+
+	// everything else is private
+	mx.Handle("/", next) // wip use protect here
 	return mx
 }
 
 func protect(next http.Handler) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
-		_, err := r.Cookie("servant-token")
+		_, err := r.Cookie("token")
 		if err != nil {
 			debug.Print(err)
 			http.Redirect(w, r, "/login", http.StatusSeeOther)

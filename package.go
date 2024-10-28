@@ -16,12 +16,16 @@ func logware(next http.Handler) http.HandlerFunc {
 		start := time.Now()
 		// Initialize the status to 200 in case WriteHeader is not called
 		rec := statusRecorder{w, 200}
+
+		// do
 		next.ServeHTTP(&rec, r)
+
+		// clean up sensitive values in query
 		query := r.URL.Query()
 		if k := "access_token"; query.Has(k) {
 			query.Set("access_token", "...")
 		}
-
+		// log request/response and
 		path := r.URL.Path
 		if v := query.Encode(); v != "" {
 			path += "?" + v
