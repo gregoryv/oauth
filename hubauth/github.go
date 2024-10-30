@@ -3,36 +3,25 @@ package hubauth
 import (
 	"encoding/json"
 	"fmt"
+	"log"
 	"net/http"
 	"net/url"
 	"os"
 	"time"
 )
 
-// redirect handles githubs oauth redirect call and redirects to page
+// Redirect handles githubs oauth redirect call and redirects to page
 // depending on state
-func Redirect() http.HandlerFunc {
+func Redirect(debug *log.Logger) http.HandlerFunc {
 	httpClient := http.DefaultClient
 	return func(w http.ResponseWriter, r *http.Request) {
-		// First, we need to get the value of the `code` query param
-		err := r.ParseForm()
-		if err != nil {
+		if err := r.ParseForm(); err != nil {
 			w.WriteHeader(http.StatusBadRequest)
 			return
 		}
 		code := r.FormValue("code")
 
-		// Next, lets for the HTTP request to call the github oauth
-		// endpoint to get our access token
-		q := url.Values{}
-		q.Set("client_id", os.Getenv("OAUTH_GITHUB_CLIENTID"))
-		q.Set("client_secret", os.Getenv("OAUTH_GITHUB_SECRET"))
-		q.Set("code", code)
-		query := q.Encode()
-		reqURL := fmt.Sprintf(
-			"https://github.com/login/oauth/access_token?%s", query,
-		)
-		req, err := http.NewRequest("POST", reqURL, nil)
+		req, err := http.NewRequest("POST", tokenURL(code), nil)
 		if err != nil {
 			w.WriteHeader(http.StatusBadRequest)
 			return
@@ -74,6 +63,7 @@ func Redirect() http.HandlerFunc {
 				w.WriteHeader(http.StatusInternalServerError)
 				return
 			}
+			debug.Println(m["name"], m["email"])
 		}
 		// redirect based on state
 		state := r.FormValue("state")
@@ -92,11 +82,24 @@ func Redirect() http.HandlerFunc {
 			Expires: expiration,
 		}
 		http.SetCookie(w, &cookie)
-		// you cannot set cookie in a redirect response, respond with a page that then redirect
-		// maybe /enter?redirect_uri=/dash
+		// wip you cannot set cookie in a redirect response, respond
+		// with a page that then redirect maybe
+		// /enter?redirect_uri=/dash
 		http.Redirect(w, r, loc, http.StatusFound)
 	}
 }
 
 // inspired by
 // https://www.sohamkamani.com/golang/oauth/
+
+// tokenURL returns github url use to get a new token
+func tokenURL(code string) string {
+	q := url.Values{}
+	q.Set("client_id", os.Getenv("OAUTH_GITHUB_CLIENTID"))
+	q.Set("client_secret", os.Getenv("OAUTH_GITHUB_SECRET"))
+	q.Set("code", code)
+	query := q.Encode()
+	return fmt.Sprintf(
+		"https://github.com/login/oauth/access_token?%s", query,
+	)
+}

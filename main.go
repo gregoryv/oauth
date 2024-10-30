@@ -56,10 +56,12 @@ func protect(next http.Handler) http.HandlerFunc {
 func Endpoints() http.Handler {
 	mx := http.NewServeMux()
 	mx.Handle("/login", login())
-	mx.Handle("/oauth/redirect", hubauth.Redirect())
+	mx.Handle("/oauth/redirect", hubauth.Redirect(debug))
+	mx.Handle("/{$}", frontpage())
+
+	// should be protected in the auth layer
 	mx.Handle("/dash", dash())
 	mx.Handle("/location/new", newLocation())
-	mx.Handle("/{$}", frontpage())
 	return mx
 }
 
