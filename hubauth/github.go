@@ -20,33 +20,13 @@ func Redirect(debug *log.Logger, last func(Account) http.HandlerFunc) http.Handl
 		}
 		code := r.FormValue("code")
 
-		req, err := http.NewRequest("POST", tokenURL(code), nil)
-		if err != nil {
-			w.WriteHeader(http.StatusBadRequest)
-			return
-		}
-		// We set this header since we want the response as JSON
-		req.Header.Set("accept", "application/json")
-
-		// Send out the HTTP request
-		res, err := httpClient.Do(req)
+		token, err := newToken(code, httpClient)
 		if err != nil {
 			w.WriteHeader(http.StatusInternalServerError)
 			return
 		}
-		defer res.Body.Close()
 
-		// read out the access token
-		var t struct {
-			AccessToken string `json:"access_token"`
-		}
-		if err := json.NewDecoder(res.Body).Decode(&t); err != nil {
-			w.WriteHeader(http.StatusBadRequest)
-			return
-		}
-
-		// wip check if account exists
-		acc, err := readAccount(t.AccessToken, httpClient)
+		acc, err := readAccount(token, httpClient)
 		if err != nil {
 			w.WriteHeader(http.StatusInternalServerError)
 			return
@@ -64,6 +44,27 @@ type Account struct {
 
 // inspired by
 // https://www.sohamkamani.com/golang/oauth/
+
+func newToken(code string, client *http.Client) (string, error) {
+	r, err := http.NewRequest("POST", tokenURL(code), nil)
+	if err != nil {
+		return "", err
+	}
+	r.Header.Set("accept", "application/json")
+
+	resp, err := client.Do(r)
+	if err != nil {
+		return "", err
+	}
+	defer resp.Body.Close()
+
+	// read out the access token
+	var t struct {
+		AccessToken string `json:"access_token"`
+	}
+	err = json.NewDecoder(resp.Body).Decode(&t)
+	return t.AccessToken, err
+}
 
 func readAccount(token string, client *http.Client) (*Account, error) {
 	r, _ := http.NewRequest("GET", "https://api.github.com/user", nil)
