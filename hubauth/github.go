@@ -7,12 +7,11 @@ import (
 	"net/http"
 	"net/url"
 	"os"
-	"time"
 )
 
 // Redirect handles githubs oauth redirect call and redirects to page
 // depending on state
-func Redirect(debug *log.Logger) http.HandlerFunc {
+func Redirect(debug *log.Logger, last func(Account) http.HandlerFunc) http.HandlerFunc {
 	httpClient := http.DefaultClient
 	return func(w http.ResponseWriter, r *http.Request) {
 		if err := r.ParseForm(); err != nil {
@@ -47,50 +46,42 @@ func Redirect(debug *log.Logger) http.HandlerFunc {
 		}
 
 		// wip check if account exists
-		{
-			r, _ := http.NewRequest("GET", "https://api.github.com/user", nil)
-			r.Header.Set("Accept", "application/vnd.github.v3+json")
-			r.Header.Set("Authorization", "token "+t.AccessToken)
-			resp, err := httpClient.Do(r)
-			if err != nil {
-				w.WriteHeader(http.StatusInternalServerError)
-				return
-			}
-			defer resp.Body.Close()
+		acc, err := readAccount(t.AccessToken, httpClient)
+		if err != nil {
+			w.WriteHeader(http.StatusInternalServerError)
+			return
+		}
 
-			m := make(map[string]any)
-			if err := json.NewDecoder(resp.Body).Decode(&m); err != nil {
-				w.WriteHeader(http.StatusInternalServerError)
-				return
-			}
-			debug.Println(m["name"], m["email"])
-		}
-		// redirect based on state
-		state := r.FormValue("state")
-		var loc string
-		switch state {
-		case "new-location":
-			loc = "/location/new"
-
-		default:
-			loc = "/dash"
-		}
-		expiration := time.Now().Add(5 * time.Minute)
-		cookie := http.Cookie{
-			Name:    "token",
-			Value:   t.AccessToken,
-			Expires: expiration,
-		}
-		http.SetCookie(w, &cookie)
-		// wip you cannot set cookie in a redirect response, respond
-		// with a page that then redirect maybe
-		// /enter?redirect_uri=/dash
-		http.Redirect(w, r, loc, http.StatusFound)
+		last(*acc).ServeHTTP(w, r)
 	}
+}
+
+type Account struct {
+	Token string
+	Name  string
+	Email string
 }
 
 // inspired by
 // https://www.sohamkamani.com/golang/oauth/
+
+func readAccount(token string, client *http.Client) (*Account, error) {
+	r, _ := http.NewRequest("GET", "https://api.github.com/user", nil)
+	r.Header.Set("Accept", "application/vnd.github.v3+json")
+	r.Header.Set("Authorization", "token "+token)
+	resp, err := client.Do(r)
+	if err != nil {
+		return nil, err
+	}
+	defer resp.Body.Close()
+
+	var acc Account
+	if err := json.NewDecoder(resp.Body).Decode(&acc); err != nil {
+		return nil, err
+	}
+	acc.Token = token
+	return &acc, nil
+}
 
 // tokenURL returns github url use to get a new token
 func tokenURL(code string) string {

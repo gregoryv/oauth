@@ -6,6 +6,7 @@ import (
 	"net/http"
 	"net/url"
 	"os"
+	"time"
 
 	"github.com/gregoryv/servant/hubauth"
 )
@@ -56,7 +57,10 @@ func protect(next http.Handler) http.HandlerFunc {
 func Endpoints() http.Handler {
 	mx := http.NewServeMux()
 	mx.Handle("/login", login())
-	mx.Handle("/oauth/redirect", hubauth.Redirect(debug))
+	mx.Handle("/oauth/redirect", hubauth.Redirect(
+		debug,
+		inside,
+	))
 	mx.Handle("/{$}", frontpage())
 
 	// should be protected in the auth layer
@@ -74,6 +78,20 @@ func login() http.HandlerFunc {
 		q.Set("state", r.FormValue("state"))
 		url := fmt.Sprintf("%s?%s", gitlabAuth, q.Encode())
 		http.Redirect(w, r, url, http.StatusSeeOther)
+	}
+}
+
+func inside(acc hubauth.Account) http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		debug.Println(acc.Name, acc.Email)
+		expiration := time.Now().Add(5 * time.Minute)
+		cookie := http.Cookie{
+			Name:    "token",
+			Value:   acc.Token,
+			Expires: expiration,
+		}
+		http.SetCookie(w, &cookie)
+		page.ExecuteTemplate(w, "dash.html", acc)
 	}
 }
 
