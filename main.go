@@ -6,6 +6,8 @@ import (
 	"net/http"
 	"net/url"
 	"os"
+
+	"github.com/gregoryv/servant/hubauth"
 )
 
 func main() {
@@ -54,7 +56,7 @@ func protect(next http.Handler) http.HandlerFunc {
 func Endpoints() http.Handler {
 	mx := http.NewServeMux()
 	mx.Handle("/login", login())
-	mx.Handle("/oauth/redirect", redirect())
+	mx.Handle("/oauth/redirect", hubauth.Redirect())
 	mx.Handle("/dash", dash())
 	mx.Handle("/location/new", newLocation())
 	mx.Handle("/{$}", frontpage())

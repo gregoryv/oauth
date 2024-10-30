@@ -1,4 +1,4 @@
-package main
+package hubauth
 
 import (
 	"encoding/json"
@@ -11,13 +11,12 @@ import (
 
 // redirect handles githubs oauth redirect call and redirects to page
 // depending on state
-func redirect() http.HandlerFunc {
+func Redirect() http.HandlerFunc {
 	httpClient := http.DefaultClient
 	return func(w http.ResponseWriter, r *http.Request) {
 		// First, we need to get the value of the `code` query param
 		err := r.ParseForm()
 		if err != nil {
-			debug.Printf("could not parse query: %v", err)
 			w.WriteHeader(http.StatusBadRequest)
 			return
 		}
@@ -35,7 +34,6 @@ func redirect() http.HandlerFunc {
 		)
 		req, err := http.NewRequest("POST", reqURL, nil)
 		if err != nil {
-			debug.Printf("could not create HTTP request: %v", err)
 			w.WriteHeader(http.StatusBadRequest)
 			return
 		}
@@ -45,7 +43,6 @@ func redirect() http.HandlerFunc {
 		// Send out the HTTP request
 		res, err := httpClient.Do(req)
 		if err != nil {
-			debug.Printf("could not send HTTP request: %v", err)
 			w.WriteHeader(http.StatusInternalServerError)
 			return
 		}
@@ -56,7 +53,6 @@ func redirect() http.HandlerFunc {
 			AccessToken string `json:"access_token"`
 		}
 		if err := json.NewDecoder(res.Body).Decode(&t); err != nil {
-			debug.Printf("could not parse JSON response: %v", err)
 			w.WriteHeader(http.StatusBadRequest)
 			return
 		}
@@ -68,7 +64,6 @@ func redirect() http.HandlerFunc {
 			r.Header.Set("Authorization", "token "+t.AccessToken)
 			resp, err := httpClient.Do(r)
 			if err != nil {
-				debug.Print(err)
 				w.WriteHeader(http.StatusInternalServerError)
 				return
 			}
@@ -76,11 +71,9 @@ func redirect() http.HandlerFunc {
 
 			m := make(map[string]any)
 			if err := json.NewDecoder(resp.Body).Decode(&m); err != nil {
-				debug.Print(err)
 				w.WriteHeader(http.StatusInternalServerError)
 				return
 			}
-			debug.Println(m["name"], m["email"], m["location"])
 		}
 		// redirect based on state
 		state := r.FormValue("state")
@@ -105,31 +98,5 @@ func redirect() http.HandlerFunc {
 	}
 }
 
-/*
-<script>
-    // We can get the token from the "access_token" query
-    // param, available in the browsers "location" global
-    const query = window.location.search.substring(1);
-    const token = query.split("access_token=")[1];
-
-    // Call the user info API using the fetch browser library
-    fetch("https://api.github.com/user", {
-      headers: {
-        // This header informs the Github API about the API version
-        Accept: "application/vnd.github.v3+json",
-        // Include the token in the Authorization header
-        Authorization: "token " + token,
-      },
-    })
-      // Parse the response as JSON
-      .then((res) => res.json())
-      .then((res) => {
-        // Once we get the response (which has many fields)
-        // Documented here: https://developer.github.com/v3/users/#get-the-authenticated-user
-        // Write "Welcome <user name>" to the documents body
-        const nameNode = document.createTextNode(`Welcome, ${res.name}`);
-        document.body.appendChild(nameNode);
-	console.log(res);
-      });
-  </script>
-*/
+// inspired by
+// https://www.sohamkamani.com/golang/oauth/
