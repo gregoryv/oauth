@@ -8,7 +8,7 @@ import (
 	"os"
 	"time"
 
-	"github.com/gregoryv/servant/hubauth"
+	"github.com/gregoryv/hubauth"
 )
 
 func main() {
