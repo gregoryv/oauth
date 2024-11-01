@@ -25,7 +25,7 @@ func (c *Config) AuthURL() string {
 	return fmt.Sprintf("%s?%s", c.OAuthURL, q.Encode())
 }
 
-func (c *Config) Redirect() http.HandlerFunc {
+func (c *Config) Login() http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		http.Redirect(w, r, c.AuthURL(), http.StatusSeeOther)
 	}

@@ -59,7 +59,7 @@ func protect(next http.Handler) http.HandlerFunc {
 func Endpoints(github *hubauth.Config) http.Handler {
 
 	mx := http.NewServeMux()
-	mx.Handle("/login", github.Redirect())
+	mx.Handle("/login", github.Login())
 	mx.Handle("/oauth/redirect", github.Enter(inside))
 	mx.Handle("/{$}", frontpage())
 
