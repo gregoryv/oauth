@@ -11,7 +11,7 @@ import (
 
 // Redirect handles githubs oauth redirect call and redirects to page
 // depending on state
-func Redirect(debug *log.Logger, last func(Account) http.HandlerFunc) http.HandlerFunc {
+func Redirect(debug *log.Logger, last func(Session) http.HandlerFunc) http.HandlerFunc {
 	httpClient := http.DefaultClient
 	return func(w http.ResponseWriter, r *http.Request) {
 		if err := r.ParseForm(); err != nil {
@@ -26,17 +26,17 @@ func Redirect(debug *log.Logger, last func(Account) http.HandlerFunc) http.Handl
 			return
 		}
 
-		acc, err := readAccount(token, httpClient)
+		session, err := readSession(token, httpClient)
 		if err != nil {
 			w.WriteHeader(http.StatusInternalServerError)
 			return
 		}
 
-		last(*acc).ServeHTTP(w, r)
+		last(*session).ServeHTTP(w, r)
 	}
 }
 
-type Account struct {
+type Session struct {
 	Token string
 	Name  string
 	Email string
@@ -66,7 +66,7 @@ func newToken(code string, client *http.Client) (string, error) {
 	return t.AccessToken, err
 }
 
-func readAccount(token string, client *http.Client) (*Account, error) {
+func readSession(token string, client *http.Client) (*Session, error) {
 	r, _ := http.NewRequest("GET", "https://api.github.com/user", nil)
 	r.Header.Set("Accept", "application/vnd.github.v3+json")
 	r.Header.Set("Authorization", "token "+token)
@@ -76,12 +76,12 @@ func readAccount(token string, client *http.Client) (*Account, error) {
 	}
 	defer resp.Body.Close()
 
-	var acc Account
-	if err := json.NewDecoder(resp.Body).Decode(&acc); err != nil {
+	var s Session
+	if err := json.NewDecoder(resp.Body).Decode(&s); err != nil {
 		return nil, err
 	}
-	acc.Token = token
-	return &acc, nil
+	s.Token = token
+	return &s, nil
 }
 
 // tokenURL returns github url use to get a new token

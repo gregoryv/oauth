@@ -16,7 +16,6 @@ func main() {
 	debug.Println("listen", bind)
 
 	h := logware(
-		// wip adding the AuthLayer here, we get an endless loop of redirects?!
 		AuthLayer(
 			Endpoints(),
 		),
@@ -36,7 +35,7 @@ func AuthLayer(next http.Handler) *http.ServeMux {
 	mx.Handle("/{$}", next)
 
 	// everything else is private
-	mx.Handle("/", next) // wip use protect here
+	mx.Handle("/", protect(next))
 	return mx
 }
 
@@ -81,7 +80,7 @@ func login() http.HandlerFunc {
 	}
 }
 
-func inside(acc hubauth.Account) http.HandlerFunc {
+func inside(acc hubauth.Session) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		debug.Println(acc.Name, acc.Email)
 		expiration := time.Now().Add(5 * time.Minute)
