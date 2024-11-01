@@ -26,13 +26,15 @@ func Redirect(debug *log.Logger, last func(Session) http.HandlerFunc) http.Handl
 			return
 		}
 
-		session, err := readSession(token, httpClient)
-		if err != nil {
+		session := Session{
+			Token: token,
+		}
+		if err := readSession(&session, httpClient); err != nil {
 			w.WriteHeader(http.StatusInternalServerError)
 			return
 		}
 
-		last(*session).ServeHTTP(w, r)
+		last(session).ServeHTTP(w, r)
 	}
 }
 
@@ -66,22 +68,17 @@ func newToken(code string, client *http.Client) (string, error) {
 	return t.AccessToken, err
 }
 
-func readSession(token string, client *http.Client) (*Session, error) {
+func readSession(session *Session, client *http.Client) error {
 	r, _ := http.NewRequest("GET", "https://api.github.com/user", nil)
 	r.Header.Set("Accept", "application/vnd.github.v3+json")
-	r.Header.Set("Authorization", "token "+token)
+	r.Header.Set("Authorization", "token "+session.Token)
 	resp, err := client.Do(r)
 	if err != nil {
-		return nil, err
+		return err
 	}
 	defer resp.Body.Close()
 
-	var s Session
-	if err := json.NewDecoder(resp.Body).Decode(&s); err != nil {
-		return nil, err
-	}
-	s.Token = token
-	return &s, nil
+	return json.NewDecoder(resp.Body).Decode(session)
 }
 
 // tokenURL returns github url use to get a new token
