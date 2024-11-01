@@ -66,7 +66,6 @@ func Endpoints() http.Handler {
 
 	// should be protected in the auth layer
 	mx.Handle("/dash", dash())
-	mx.Handle("/location/new", newLocation())
 	return mx
 }
 
@@ -90,17 +89,10 @@ func dash() http.HandlerFunc {
 	}
 }
 
-func newLocation() http.HandlerFunc {
-	return func(w http.ResponseWriter, r *http.Request) {
-		page.ExecuteTemplate(w, "new_location.html", nil)
-	}
-}
-
 func frontpage() http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		m := map[string]any{
-			"PathNewLocation": "/login?state=new-location",
-			"PathLoginGithub": "/login?oauth=github",
+			"PathLoginGithub": "/login",
 		}
 		page.ExecuteTemplate(w, "index.html", m)
 	}
