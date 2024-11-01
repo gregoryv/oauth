@@ -59,15 +59,15 @@ func protect(next http.Handler) http.HandlerFunc {
 func Endpoints(github *hubauth.Config) http.Handler {
 	mx := http.NewServeMux()
 	mx.Handle("/login", github.Login())
-	mx.Handle("/oauth/redirect", github.OAuthRedirect(inside))
+	mx.Handle("/oauth/redirect", github.OAuthRedirect(oauthFromGithub))
 	mx.Handle("/{$}", frontpage())
 
 	// should be protected in the auth layer
-	mx.Handle("/dash", dash())
+	mx.Handle("/inside", inside())
 	return mx
 }
 
-func inside(acc hubauth.Session) http.HandlerFunc {
+func oauthFromGithub(acc hubauth.Session) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		debug.Println(acc.Name, acc.Email)
 		expiration := time.Now().Add(5 * time.Minute)
@@ -77,13 +77,14 @@ func inside(acc hubauth.Session) http.HandlerFunc {
 			Expires: expiration,
 		}
 		http.SetCookie(w, &cookie)
-		page.ExecuteTemplate(w, "dash.html", acc)
+		page.ExecuteTemplate(w, "inside.html", acc)
 	}
 }
 
-func dash() http.HandlerFunc {
+// once authenticated, the user is inside
+func inside() http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
-		page.ExecuteTemplate(w, "dash.html", nil)
+		page.ExecuteTemplate(w, "inside.html", nil)
 	}
 }
 
