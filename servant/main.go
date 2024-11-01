@@ -1,10 +1,8 @@
 package main
 
 import (
-	"fmt"
 	"log"
 	"net/http"
-	"net/url"
 	"os"
 	"time"
 
@@ -54,8 +52,12 @@ func protect(next http.Handler) http.HandlerFunc {
 // ----------------------------------------
 
 func Endpoints() http.Handler {
+	github := hubauth.Config{
+		ClientID:    os.Getenv("OAUTH_GITHUB_CLIENTID"),
+		RedirectURI: os.Getenv("OAUTH_GITHUB_REDIRECT_URI"),
+	}
 	mx := http.NewServeMux()
-	mx.Handle("/login", login())
+	mx.Handle("/login", github.Redirect())
 	mx.Handle("/oauth/redirect", hubauth.Enter(
 		debug,
 		inside,
@@ -66,19 +68,6 @@ func Endpoints() http.Handler {
 	mx.Handle("/dash", dash())
 	mx.Handle("/location/new", newLocation())
 	return mx
-}
-
-// wip move to hubauth as a helper handler
-func login() http.HandlerFunc {
-	gitlabAuth := "https://github.com/login/oauth/authorize"
-	q := url.Values{}
-	q.Set("client_id", os.Getenv("OAUTH_GITHUB_CLIENTID"))
-	q.Set("redirect_uri", os.Getenv("OAUTH_GITHUB_REDIRECT_URI"))
-	url := fmt.Sprintf("%s?%s", gitlabAuth, q.Encode())
-
-	return func(w http.ResponseWriter, r *http.Request) {
-		http.Redirect(w, r, url, http.StatusSeeOther)
-	}
 }
 
 func inside(acc hubauth.Session) http.HandlerFunc {
