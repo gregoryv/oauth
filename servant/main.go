@@ -57,10 +57,9 @@ func protect(next http.Handler) http.HandlerFunc {
 // ----------------------------------------
 
 func Endpoints(github *hubauth.Config) http.Handler {
-
 	mx := http.NewServeMux()
 	mx.Handle("/login", github.Login())
-	mx.Handle("/oauth/redirect", github.Enter(inside))
+	mx.Handle("/oauth/redirect", github.OAuthRedirect(inside))
 	mx.Handle("/{$}", frontpage())
 
 	// should be protected in the auth layer

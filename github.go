@@ -5,8 +5,8 @@ import (
 	"net/http"
 )
 
-// Enter handles githubs oauth redirect_uri call.
-func (c *Config) Enter(last func(Session) http.HandlerFunc) http.HandlerFunc {
+// OAuthRedirect handles githubs oauth redirect_uri call.
+func (c *Config) OAuthRedirect(last func(Session) http.HandlerFunc) http.HandlerFunc {
 	httpClient := http.DefaultClient
 	return func(w http.ResponseWriter, r *http.Request) {
 		if err := r.ParseForm(); err != nil {
