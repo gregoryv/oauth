@@ -67,7 +67,7 @@ func Endpoints(github *hubauth.Config) http.Handler {
 	return mx
 }
 
-func oauthFromGithub(acc hubauth.Session) http.HandlerFunc {
+func oauthFromGithub(session hubauth.Session) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		debug.Println(acc.Name, acc.Email)
 		expiration := time.Now().Add(5 * time.Minute)
@@ -77,14 +77,7 @@ func oauthFromGithub(acc hubauth.Session) http.HandlerFunc {
 			Expires: expiration,
 		}
 		http.SetCookie(w, &cookie)
-		page.ExecuteTemplate(w, "inside.html", acc)
-	}
-}
-
-// once authenticated, the user is inside
-func inside() http.HandlerFunc {
-	return func(w http.ResponseWriter, r *http.Request) {
-		page.ExecuteTemplate(w, "inside.html", nil)
+		page.ExecuteTemplate(w, "inside.html", session)
 	}
 }
 
@@ -94,5 +87,12 @@ func frontpage() http.HandlerFunc {
 			"PathLoginGithub": "/login",
 		}
 		page.ExecuteTemplate(w, "index.html", m)
+	}
+}
+
+// once authenticated, the user is inside
+func inside() http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		page.ExecuteTemplate(w, "inside.html", nil)
 	}
 }
