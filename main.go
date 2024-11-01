@@ -68,14 +68,15 @@ func Endpoints() http.Handler {
 	return mx
 }
 
+// wip move to hubauth as a helper handler
 func login() http.HandlerFunc {
+	gitlabAuth := "https://github.com/login/oauth/authorize"
+	q := url.Values{}
+	q.Set("client_id", os.Getenv("OAUTH_GITHUB_CLIENTID"))
+	q.Set("redirect_uri", os.Getenv("OAUTH_GITHUB_REDIRECT_URI"))
+	url := fmt.Sprintf("%s?%s", gitlabAuth, q.Encode())
+
 	return func(w http.ResponseWriter, r *http.Request) {
-		gitlabAuth := "https://github.com/login/oauth/authorize"
-		q := url.Values{}
-		q.Set("client_id", os.Getenv("OAUTH_GITHUB_CLIENTID"))
-		q.Set("redirect_uri", os.Getenv("OAUTH_GITHUB_REDIRECT_URI"))
-		q.Set("state", r.FormValue("state"))
-		url := fmt.Sprintf("%s?%s", gitlabAuth, q.Encode())
 		http.Redirect(w, r, url, http.StatusSeeOther)
 	}
 }
