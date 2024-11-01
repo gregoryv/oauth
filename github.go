@@ -2,16 +2,11 @@ package hubauth
 
 import (
 	"encoding/json"
-	"fmt"
-	"log"
 	"net/http"
-	"net/url"
-	"os"
 )
 
-// Redirect handles githubs oauth redirect call and redirects to page
-// depending on state
-func Enter(debug *log.Logger, last func(Session) http.HandlerFunc) http.HandlerFunc {
+// Enter handles githubs oauth redirect_uri call.
+func Enter(conf *Config, last func(Session) http.HandlerFunc) http.HandlerFunc {
 	httpClient := http.DefaultClient
 	return func(w http.ResponseWriter, r *http.Request) {
 		if err := r.ParseForm(); err != nil {
@@ -38,6 +33,8 @@ func Enter(debug *log.Logger, last func(Session) http.HandlerFunc) http.HandlerF
 	}
 }
 
+// Once authenticated the session contains the information from
+// github.
 type Session struct {
 	Token string
 	Name  string
@@ -76,18 +73,6 @@ func readSession(session *Session, client *http.Client) error {
 	defer resp.Body.Close()
 
 	return json.NewDecoder(resp.Body).Decode(session)
-}
-
-// tokenURL returns github url use to get a new token
-func tokenURL(code string) string {
-	q := url.Values{}
-	q.Set("client_id", os.Getenv("OAUTH_GITHUB_CLIENTID"))
-	q.Set("client_secret", os.Getenv("OAUTH_GITHUB_SECRET"))
-	q.Set("code", code)
-	query := q.Encode()
-	return fmt.Sprintf(
-		"https://github.com/login/oauth/access_token?%s", query,
-	)
 }
 
 // inspired by

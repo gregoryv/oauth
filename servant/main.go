@@ -13,9 +13,14 @@ func main() {
 	bind := ":8100"
 	debug.Println("listen", bind)
 
+	github := hubauth.Config{
+		ClientID:    os.Getenv("OAUTH_GITHUB_CLIENTID"),
+		RedirectURI: os.Getenv("OAUTH_GITHUB_REDIRECT_URI"),
+	}
+
 	h := logware(
 		AuthLayer(
-			Endpoints(),
+			Endpoints(&github),
 		),
 	)
 
@@ -51,15 +56,12 @@ func protect(next http.Handler) http.HandlerFunc {
 
 // ----------------------------------------
 
-func Endpoints() http.Handler {
-	github := hubauth.Config{
-		ClientID:    os.Getenv("OAUTH_GITHUB_CLIENTID"),
-		RedirectURI: os.Getenv("OAUTH_GITHUB_REDIRECT_URI"),
-	}
+func Endpoints(github *hubauth.Config) http.Handler {
+
 	mx := http.NewServeMux()
 	mx.Handle("/login", github.Redirect())
 	mx.Handle("/oauth/redirect", hubauth.Enter(
-		debug,
+		github,
 		inside,
 	))
 	mx.Handle("/{$}", frontpage())
