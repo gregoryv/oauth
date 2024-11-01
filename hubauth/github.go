@@ -11,7 +11,7 @@ import (
 
 // Redirect handles githubs oauth redirect call and redirects to page
 // depending on state
-func Redirect(debug *log.Logger, last func(Session) http.HandlerFunc) http.HandlerFunc {
+func Enter(debug *log.Logger, last func(Session) http.HandlerFunc) http.HandlerFunc {
 	httpClient := http.DefaultClient
 	return func(w http.ResponseWriter, r *http.Request) {
 		if err := r.ParseForm(); err != nil {
@@ -43,9 +43,6 @@ type Session struct {
 	Name  string
 	Email string
 }
-
-// inspired by
-// https://www.sohamkamani.com/golang/oauth/
 
 func newToken(code string, client *http.Client) (string, error) {
 	r, err := http.NewRequest("POST", tokenURL(code), nil)
@@ -92,3 +89,6 @@ func tokenURL(code string) string {
 		"https://github.com/login/oauth/access_token?%s", query,
 	)
 }
+
+// inspired by
+// https://www.sohamkamani.com/golang/oauth/
