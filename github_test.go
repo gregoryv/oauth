@@ -24,7 +24,7 @@ func TestGithubConf_Login(t *testing.T) {
 	}
 }
 
-func TestGithubConf_Authorized(t *testing.T) {
+func TestGithubConf_Authorize(t *testing.T) {
 
 }
 

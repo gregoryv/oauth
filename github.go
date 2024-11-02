@@ -1,3 +1,6 @@
+/*
+Package oauth provides http handler for authenticating via github.
+*/
 package oauth
 
 import (
@@ -34,9 +37,9 @@ func (c *GithubConf) Login() http.HandlerFunc {
 	}
 }
 
-// Authorized returns a github oauth redirect_uri middleware.
+// Authorize returns a github oauth redirect_uri middleware.
 // On success enter handler is called with the new token.
-func (c *GithubConf) Authorized(enter Enter) http.HandlerFunc {
+func (c *GithubConf) Authorize(enter Enter) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		if err := r.ParseForm(); err != nil {
 			w.WriteHeader(http.StatusBadRequest)
@@ -52,6 +55,15 @@ func (c *GithubConf) Authorized(enter Enter) http.HandlerFunc {
 
 		enter(token, w, r)
 	}
+}
+
+// RedirectPattern returns GET + path from RedirectURI
+func (c *GithubConf) Redirect() string {
+	u, err := url.Parse(c.RedirectURI)
+	if err != nil {
+		panic(err.Error())
+	}
+	return fmt.Sprintf("GET %s", u.Path)
 }
 
 // Enter is used as the http handler once authentication succeeds.
