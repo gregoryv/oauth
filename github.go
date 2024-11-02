@@ -57,8 +57,8 @@ func (c *GithubConf) Authorize(enter Enter) http.HandlerFunc {
 	}
 }
 
-// RedirectPattern returns GET + path from RedirectURI
-func (c *GithubConf) Redirect() string {
+// AuthPattern returns GET + path from RedirectURI
+func (c *GithubConf) AuthPattern() string {
 	u, err := url.Parse(c.RedirectURI)
 	if err != nil {
 		panic(err.Error())

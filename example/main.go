@@ -18,7 +18,7 @@ func main() {
 	}
 
 	http.Handle("GET /login", github.Login())
-	http.Handle(github.Redirect(), github.Authorize(enter))
+	http.Handle(github.AuthPattern(), github.Authorize(enter))
 	if err := http.ListenAndServe(":8010", nil); err != nil {
 		log.Fatal(err)
 	}

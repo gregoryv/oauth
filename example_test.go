@@ -13,11 +13,11 @@ func Example_githubOAuth() {
 	github := oauth.GithubConf{
 		ClientID:     os.Getenv("OAUTH_GITHUB_CLIENTID"),
 		ClientSecret: os.Getenv("OAUTH_GITHUB_SECRET"),
-		RedirectURI:  os.Getenv("OAUTH_GITHUB_REDIRECT_URI"),
+		RedirectURI:  "http://example.com/oauth/fromgithub",
 	}
 
 	http.Handle("GET /login", github.Login())
-	http.Handle(github.Redirect(), github.Authorize(enter))
+	http.Handle("GET /oauth/fromgithub", github.Authorize(enter))
 }
 
 func enter(token string, w http.ResponseWriter, r *http.Request) {
