@@ -10,8 +10,8 @@ import (
 	"net/url"
 )
 
-// Enter is used once authorized.
-type Enter func(token string, w http.ResponseWriter, r *http.Request)
+// Handler is used once authorized.
+type Handler func(token string, w http.ResponseWriter, r *http.Request)
 
 // User returns a request to query api.github.com/user.
 func (c *Github) User(token string) *http.Request {
@@ -41,8 +41,8 @@ func (c *Github) Login() http.HandlerFunc {
 }
 
 // Authorize returns a github oauth redirect_uri middleware.
-// On success enter handler is called with the new token.
-func (c *Github) Authorize(next Enter) http.HandlerFunc {
+// On success Handler handler is called with the new token.
+func (c *Github) Authorize(next Handler) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		if err := r.ParseForm(); err != nil {
 			w.WriteHeader(http.StatusBadRequest)
