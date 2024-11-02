@@ -37,13 +37,12 @@ func protect(next http.Handler) http.HandlerFunc {
 // enter is used after a user authenticates via github. It sets a
 // token cookie.
 func enter(token string, w http.ResponseWriter, r *http.Request) {
-
 	var user struct {
 		Email string
 		Name  string
 	}
 
-	resp, err := http.DefaultClient.Do(oauth.GithubUser(token))
+	resp, err := http.DefaultClient.Do(github.User(token))
 	if err != nil {
 		w.WriteHeader(http.StatusInternalServerError)
 		return

@@ -12,12 +12,6 @@ func main() {
 	bind := ":8100"
 	debug.Println("listen", bind)
 
-	github := oauth.GithubConf{
-		ClientID:     os.Getenv("OAUTH_GITHUB_CLIENTID"),
-		ClientSecret: os.Getenv("OAUTH_GITHUB_SECRET"),
-		RedirectURI:  os.Getenv("OAUTH_GITHUB_REDIRECT_URI"),
-	}
-
 	h := logware(
 		AuthLayer(
 			&github,
@@ -52,4 +46,10 @@ func inside() http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		page.ExecuteTemplate(w, "inside.html", existingSession(r))
 	}
+}
+
+var github = oauth.GithubConf{
+	ClientID:     os.Getenv("OAUTH_GITHUB_CLIENTID"),
+	ClientSecret: os.Getenv("OAUTH_GITHUB_SECRET"),
+	RedirectURI:  os.Getenv("OAUTH_GITHUB_REDIRECT_URI"),
 }

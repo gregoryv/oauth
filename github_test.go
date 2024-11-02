@@ -24,12 +24,9 @@ func TestGithubConf_Login(t *testing.T) {
 	}
 }
 
-func TestGithubConf_Authorize(t *testing.T) {
-
-}
-
 func TestGithubUser(t *testing.T) {
-	r := GithubUser("... token ...")
+	var c GithubConf
+	r := c.User("... token ...")
 	data, _ := httputil.DumpRequest(r, false)
 	golden.AssertWith(t, string(data), "testdata/github_user.http")
 }

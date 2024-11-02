@@ -10,8 +10,8 @@ import (
 	"net/url"
 )
 
-// GithubUser returns a request to query api.github.com/user.
-func GithubUser(token string) *http.Request {
+// User returns a request to query api.github.com/user.
+func (c *GithubConf) User(token string) *http.Request {
 	r, _ := http.NewRequest("GET", "https://api.github.com/user", nil)
 	r.Header.Set("Accept", "application/vnd.github.v3+json")
 	r.Header.Set("Authorization", "token "+token)
