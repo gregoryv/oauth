@@ -79,6 +79,8 @@ func enter(session oauth.Session) http.HandlerFunc {
 		// cache the session
 		sessions[session.Token] = session
 
+		// return a page just to set a cookie and then redirect to a
+		// location. Cannot set a cookie in a plain redirect response.
 		http.SetCookie(w, &cookie)
 		m := map[string]string{
 			"Location": "/inside",
