@@ -17,7 +17,7 @@ func enter(token string, w http.ResponseWriter, r *http.Request) {
 	fmt.Fprintf(w, "Welcome!")
 }
 
-var github = oauth.AuthGithub{
+var github = oauth.Github{
 	ClientID:     os.Getenv("OAUTH_GITHUB_CLIENTID"),
 	ClientSecret: os.Getenv("OAUTH_GITHUB_SECRET"),
 	RedirectURI:  "http://example.com/oauth/fromgithub",

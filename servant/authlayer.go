@@ -94,7 +94,7 @@ func (s *Session) String() string {
 	return fmt.Sprintln(s.Name, s.Email)
 }
 
-var github = oauth.AuthGithub{
+var github = oauth.Github{
 	ClientID:     os.Getenv("OAUTH_GITHUB_CLIENTID"),
 	ClientSecret: os.Getenv("OAUTH_GITHUB_SECRET"),
 	RedirectURI:  os.Getenv("OAUTH_GITHUB_REDIRECT_URI"),
