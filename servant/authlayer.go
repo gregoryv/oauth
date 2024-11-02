@@ -15,7 +15,7 @@ func AuthLayer(next http.Handler) *http.ServeMux {
 	// explicitly set public patterns so that we don't accidently
 	// forget to protect a new endpoint
 	mx.Handle("/login", github.Login())
-	mx.Handle("/oauth/redirect", github.Authorize(enter))
+	mx.Handle("GET "+github.RedirectPath(), github.Authorize(enter))
 	mx.Handle("/{$}", next)
 
 	// everything else is private
@@ -94,7 +94,7 @@ func (s *Session) String() string {
 	return fmt.Sprintln(s.Name, s.Email)
 }
 
-var github = oauth.GithubConf{
+var github = oauth.AuthGithub{
 	ClientID:     os.Getenv("OAUTH_GITHUB_CLIENTID"),
 	ClientSecret: os.Getenv("OAUTH_GITHUB_SECRET"),
 	RedirectURI:  os.Getenv("OAUTH_GITHUB_REDIRECT_URI"),

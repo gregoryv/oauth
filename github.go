@@ -11,21 +11,21 @@ import (
 )
 
 // User returns a request to query api.github.com/user.
-func (c *GithubConf) User(token string) *http.Request {
+func (c *AuthGithub) User(token string) *http.Request {
 	r, _ := http.NewRequest("GET", "https://api.github.com/user", nil)
 	r.Header.Set("Accept", "application/vnd.github.v3+json")
 	r.Header.Set("Authorization", "token "+token)
 	return r
 }
 
-type GithubConf struct {
+type AuthGithub struct {
 	ClientID     string
 	ClientSecret string
 	RedirectURI  string
 }
 
 // Login returns a handler that redirects to github authorize.
-func (c *GithubConf) Login() http.HandlerFunc {
+func (c *AuthGithub) Login() http.HandlerFunc {
 	q := url.Values{}
 	q.Set("client_id", c.ClientID)
 	q.Set("redirect_uri", c.RedirectURI)
@@ -39,7 +39,7 @@ func (c *GithubConf) Login() http.HandlerFunc {
 
 // Authorize returns a github oauth redirect_uri middleware.
 // On success enter handler is called with the new token.
-func (c *GithubConf) Authorize(enter Enter) http.HandlerFunc {
+func (c *AuthGithub) Authorize(enter Enter) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		if err := r.ParseForm(); err != nil {
 			w.WriteHeader(http.StatusBadRequest)
@@ -57,11 +57,19 @@ func (c *GithubConf) Authorize(enter Enter) http.HandlerFunc {
 	}
 }
 
+func (c *AuthGithub) RedirectPath() string {
+	u, err := url.Parse(c.RedirectURI)
+	if err != nil {
+		return ""
+	}
+	return u.Path
+}
+
 // Enter is used as the http handler once authentication succeeds.
 // See [GithubConf.Authorized]
 type Enter func(token string, w http.ResponseWriter, r *http.Request)
 
-func (c *GithubConf) newToken(code string) (string, error) {
+func (c *AuthGithub) newToken(code string) (string, error) {
 	r := c.newTokenRequest(code)
 	resp, err := http.DefaultClient.Do(r)
 	if err != nil {
@@ -77,7 +85,7 @@ func (c *GithubConf) newToken(code string) (string, error) {
 	return t.AccessToken, err
 }
 
-func (c *GithubConf) newTokenRequest(code string) *http.Request {
+func (c *AuthGithub) newTokenRequest(code string) *http.Request {
 	q := url.Values{}
 	q.Set("client_id", c.ClientID)
 	q.Set("client_secret", c.ClientSecret)

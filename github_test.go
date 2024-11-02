@@ -9,8 +9,8 @@ import (
 	"github.com/gregoryv/golden"
 )
 
-func TestGithubConf_Login(t *testing.T) {
-	c := GithubConf{}
+func TestAuthGithub_Login(t *testing.T) {
+	c := AuthGithub{}
 	h := c.Login()
 
 	w := httptest.NewRecorder()
@@ -25,7 +25,7 @@ func TestGithubConf_Login(t *testing.T) {
 }
 
 func TestGithubUser(t *testing.T) {
-	var c GithubConf
+	var c AuthGithub
 	r := c.User("... token ...")
 	data, _ := httputil.DumpRequest(r, false)
 	golden.AssertWith(t, string(data), "testdata/github_user.http")
