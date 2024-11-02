@@ -34,9 +34,9 @@ func (c *GithubConf) Login() http.HandlerFunc {
 	}
 }
 
-// Authorized handles githubs oauth redirect_uri call.
-// wip this is step two in the authorization step
-func (c *GithubConf) Authorized(enter func(string) http.HandlerFunc) http.HandlerFunc {
+// Authorized returns a github oauth redirect_uri middleware.
+// On success enter handler is called with the new token.
+func (c *GithubConf) Authorized(enter Enter) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		if err := r.ParseForm(); err != nil {
 			w.WriteHeader(http.StatusBadRequest)
@@ -50,9 +50,13 @@ func (c *GithubConf) Authorized(enter func(string) http.HandlerFunc) http.Handle
 			return
 		}
 
-		enter(token).ServeHTTP(w, r)
+		enter(token, w, r)
 	}
 }
+
+// Enter is used as the http handler once authentication succeeds.
+// See [GithubConf.Authorized]
+type Enter func(token string, w http.ResponseWriter, r *http.Request)
 
 func (c *GithubConf) newToken(code string) (string, error) {
 	r := c.NewTokenRequest(code)

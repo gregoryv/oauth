@@ -36,44 +36,42 @@ func protect(next http.Handler) http.HandlerFunc {
 
 // enter is used after a user authenticates via github. It sets a
 // token cookie.
-func enter(token string) http.HandlerFunc {
-	return func(w http.ResponseWriter, r *http.Request) {
+func enter(token string, w http.ResponseWriter, r *http.Request) {
 
-		var user struct {
-			Email string
-			Name  string
-		}
-
-		resp, err := http.DefaultClient.Do(oauth.GithubUser(token))
-		if err != nil {
-			w.WriteHeader(http.StatusInternalServerError)
-			return
-		}
-		json.NewDecoder(resp.Body).Decode(&user)
-
-		cookie := http.Cookie{
-			Name:     "token",
-			Value:    token,
-			Path:     "/",
-			Expires:  time.Now().Add(15 * time.Minute),
-			HttpOnly: true,
-		}
-		// cache the session
-		session := Session{
-			Token: token,
-			Name:  user.Name,
-			Email: user.Email,
-		}
-		sessions[session.Token] = session
-		debug.Println(session.String())
-		// return a page just to set a cookie and then redirect to a
-		// location. Cannot set a cookie in a plain redirect response.
-		http.SetCookie(w, &cookie)
-		m := map[string]string{
-			"Location": "/inside",
-		}
-		page.ExecuteTemplate(w, "redirect.html", m)
+	var user struct {
+		Email string
+		Name  string
 	}
+
+	resp, err := http.DefaultClient.Do(oauth.GithubUser(token))
+	if err != nil {
+		w.WriteHeader(http.StatusInternalServerError)
+		return
+	}
+	json.NewDecoder(resp.Body).Decode(&user)
+
+	cookie := http.Cookie{
+		Name:     "token",
+		Value:    token,
+		Path:     "/",
+		Expires:  time.Now().Add(15 * time.Minute),
+		HttpOnly: true,
+	}
+	// cache the session
+	session := Session{
+		Token: token,
+		Name:  user.Name,
+		Email: user.Email,
+	}
+	sessions[session.Token] = session
+	debug.Println(session.String())
+	// return a page just to set a cookie and then redirect to a
+	// location. Cannot set a cookie in a plain redirect response.
+	http.SetCookie(w, &cookie)
+	m := map[string]string{
+		"Location": "/inside",
+	}
+	page.ExecuteTemplate(w, "redirect.html", m)
 }
 
 func existingSession(r *http.Request) Session {
