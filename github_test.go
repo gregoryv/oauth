@@ -1,4 +1,4 @@
-package hubauth
+package oauth
 
 import "testing"
 

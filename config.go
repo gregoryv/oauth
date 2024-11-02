@@ -1,4 +1,4 @@
-package hubauth
+package oauth
 
 import (
 	"fmt"
@@ -8,11 +8,11 @@ import (
 )
 
 type Config struct {
-	// optional, default https://github.com/login/oauth/authorize
-	OAuthURL string
-
 	ClientID    string
 	RedirectURI string
+
+	// optional, default https://github.com/login/oauth/authorize
+	OAuthURL string
 }
 
 func (c *Config) AuthURL() string {

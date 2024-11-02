@@ -6,14 +6,14 @@ import (
 	"os"
 	"time"
 
-	"github.com/gregoryv/hubauth"
+	"github.com/gregoryv/oauth"
 )
 
 func main() {
 	bind := ":8100"
 	debug.Println("listen", bind)
 
-	github := hubauth.Config{
+	github := oauth.Config{
 		ClientID:    os.Getenv("OAUTH_GITHUB_CLIENTID"),
 		RedirectURI: os.Getenv("OAUTH_GITHUB_REDIRECT_URI"),
 	}
@@ -42,7 +42,7 @@ func AuthLayer(next http.Handler) *http.ServeMux {
 	return mx
 }
 
-func Endpoints(github *hubauth.Config) http.Handler {
+func Endpoints(github *oauth.Config) http.Handler {
 	mx := http.NewServeMux()
 	mx.Handle("/login", github.Login())
 	mx.Handle("/oauth/redirect", github.OAuthRedirect(oauthFromGithub))
@@ -65,7 +65,7 @@ func protect(next http.Handler) http.HandlerFunc {
 	}
 }
 
-func oauthFromGithub(session hubauth.Session) http.HandlerFunc {
+func oauthFromGithub(session oauth.Session) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		debug.Println(session)
 		expiration := time.Now().Add(5 * time.Minute)
