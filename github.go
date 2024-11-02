@@ -57,15 +57,6 @@ func (c *GithubConf) Authorize(enter Enter) http.HandlerFunc {
 	}
 }
 
-// AuthPattern returns GET + path from RedirectURI
-func (c *GithubConf) AuthPattern() string {
-	u, err := url.Parse(c.RedirectURI)
-	if err != nil {
-		panic(err.Error())
-	}
-	return fmt.Sprintf("GET %s", u.Path)
-}
-
 // Enter is used as the http handler once authentication succeeds.
 // See [GithubConf.Authorized]
 type Enter func(token string, w http.ResponseWriter, r *http.Request)
