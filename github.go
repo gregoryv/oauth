@@ -71,7 +71,7 @@ func (c *GithubConf) AuthPattern() string {
 type Enter func(token string, w http.ResponseWriter, r *http.Request)
 
 func (c *GithubConf) newToken(code string) (string, error) {
-	r := c.NewTokenRequest(code)
+	r := c.newTokenRequest(code)
 	resp, err := http.DefaultClient.Do(r)
 	if err != nil {
 		return "", err
@@ -86,7 +86,7 @@ func (c *GithubConf) newToken(code string) (string, error) {
 	return t.AccessToken, err
 }
 
-func (c *GithubConf) NewTokenRequest(code string) *http.Request {
+func (c *GithubConf) newTokenRequest(code string) *http.Request {
 	q := url.Values{}
 	q.Set("client_id", c.ClientID)
 	q.Set("client_secret", c.ClientSecret)
