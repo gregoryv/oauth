@@ -16,7 +16,7 @@ func (c *Config) OAuthRedirect(last func(Session) http.HandlerFunc) http.Handler
 		}
 		code := r.FormValue("code")
 
-		token, err := newToken(code, httpClient)
+		token, err := newToken(c, code, httpClient)
 		if err != nil {
 			w.WriteHeader(http.StatusInternalServerError)
 			return
@@ -34,8 +34,8 @@ func (c *Config) OAuthRedirect(last func(Session) http.HandlerFunc) http.Handler
 	}
 }
 
-func newToken(code string, client *http.Client) (string, error) {
-	r, err := http.NewRequest("POST", tokenURL(code), nil)
+func newToken(c *Config, code string, client *http.Client) (string, error) {
+	r, err := http.NewRequest("POST", c.tokenURL(code), nil)
 	if err != nil {
 		return "", err
 	}

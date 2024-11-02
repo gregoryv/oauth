@@ -3,9 +3,10 @@ package oauth
 import "testing"
 
 func xTest_tokenURL(t *testing.T) {
+	var c Config
 	code := "123"
 	exp := "https://..."
-	if got := tokenURL(code); got != exp {
+	if got := c.tokenURL(code); got != exp {
 		t.Errorf("tokenURL(%q): %s, expected %s", code, got, exp)
 	}
 }

@@ -31,9 +31,8 @@ func (c *Config) Login() http.HandlerFunc {
 	}
 }
 
-// wip method of config
 // tokenURL returns github url use to get a new token
-func tokenURL(code string) string {
+func (c *Config) tokenURL(code string) string {
 	q := url.Values{}
 	q.Set("client_id", os.Getenv("OAUTH_GITHUB_CLIENTID"))
 	q.Set("client_secret", os.Getenv("OAUTH_GITHUB_SECRET"))
