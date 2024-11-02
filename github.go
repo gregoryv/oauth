@@ -2,12 +2,11 @@ package oauth
 
 import (
 	"encoding/json"
-	"fmt"
 	"net/http"
 )
 
 // OAuthRedirect handles githubs oauth redirect_uri call.
-func (c *GithubConf) OAuthRedirect(last func(Session) http.HandlerFunc) http.HandlerFunc {
+func (c *GithubConf) OAuthRedirect(last func(string) http.HandlerFunc) http.HandlerFunc {
 	httpClient := http.DefaultClient
 	return func(w http.ResponseWriter, r *http.Request) {
 		if err := r.ParseForm(); err != nil {
@@ -22,15 +21,7 @@ func (c *GithubConf) OAuthRedirect(last func(Session) http.HandlerFunc) http.Han
 			return
 		}
 
-		session := Session{
-			Token: token,
-		}
-		if err := readSession(&session, httpClient); err != nil {
-			w.WriteHeader(http.StatusInternalServerError)
-			return
-		}
-
-		last(session).ServeHTTP(w, r)
+		last(token).ServeHTTP(w, r)
 	}
 }
 
@@ -55,29 +46,11 @@ func newToken(c *GithubConf, code string, client *http.Client) (string, error) {
 	return t.AccessToken, err
 }
 
-func readSession(session *Session, client *http.Client) error {
+func GithubUser(token string) *http.Request {
 	r, _ := http.NewRequest("GET", "https://api.github.com/user", nil)
 	r.Header.Set("Accept", "application/vnd.github.v3+json")
-	r.Header.Set("Authorization", "token "+session.Token)
-	resp, err := client.Do(r)
-	if err != nil {
-		return err
-	}
-	defer resp.Body.Close()
-
-	return json.NewDecoder(resp.Body).Decode(session)
-}
-
-// Once authenticated the session contains the information from
-// github.
-type Session struct {
-	Token string
-	Name  string
-	Email string
-}
-
-func (s *Session) String() string {
-	return fmt.Sprintln(s.Name, s.Email)
+	r.Header.Set("Authorization", "token "+token)
+	return r
 }
 
 // inspired by
