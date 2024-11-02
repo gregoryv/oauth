@@ -14,7 +14,7 @@ func AuthLayer(github *oauth.GithubConf, next http.Handler) *http.ServeMux {
 	// explicitly set public patterns so that we don't accidently
 	// forget to protect a new endpoint
 	mx.Handle("/login", github.Login())
-	mx.Handle("/oauth/redirect", github.OAuthRedirect(enter))
+	mx.Handle("/oauth/redirect", github.Authorized(enter))
 	mx.Handle("/{$}", next)
 
 	// everything else is private
