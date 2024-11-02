@@ -39,7 +39,7 @@ func (c *AuthGithub) Login() http.HandlerFunc {
 
 // Authorize returns a github oauth redirect_uri middleware.
 // On success enter handler is called with the new token.
-func (c *AuthGithub) Authorize(enter Enter) http.HandlerFunc {
+func (c *AuthGithub) Authorize(next Enter) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		if err := r.ParseForm(); err != nil {
 			w.WriteHeader(http.StatusBadRequest)
@@ -53,7 +53,7 @@ func (c *AuthGithub) Authorize(enter Enter) http.HandlerFunc {
 			return
 		}
 
-		enter(token, w, r)
+		next(token, w, r)
 	}
 }
 
@@ -65,8 +65,7 @@ func (c *AuthGithub) RedirectPath() string {
 	return u.Path
 }
 
-// Enter is used as the http handler once authentication succeeds.
-// See [GithubConf.Authorized]
+// Enter is used once authorized. See [AuthGithub.Authorize]
 type Enter func(token string, w http.ResponseWriter, r *http.Request)
 
 func (c *AuthGithub) newToken(code string) (string, error) {
