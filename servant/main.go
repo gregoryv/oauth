@@ -3,9 +3,6 @@ package main
 import (
 	"log"
 	"net/http"
-	"os"
-
-	"github.com/gregoryv/oauth"
 )
 
 func main() {
@@ -14,7 +11,6 @@ func main() {
 
 	h := logware(
 		AuthLayer(
-			&github,
 			Endpoints(),
 		),
 	)
@@ -46,10 +42,4 @@ func inside() http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		page.ExecuteTemplate(w, "inside.html", existingSession(r))
 	}
-}
-
-var github = oauth.GithubConf{
-	ClientID:     os.Getenv("OAUTH_GITHUB_CLIENTID"),
-	ClientSecret: os.Getenv("OAUTH_GITHUB_SECRET"),
-	RedirectURI:  os.Getenv("OAUTH_GITHUB_REDIRECT_URI"),
 }

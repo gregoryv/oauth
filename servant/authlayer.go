@@ -4,12 +4,13 @@ import (
 	"encoding/json"
 	"fmt"
 	"net/http"
+	"os"
 	"time"
 
 	"github.com/gregoryv/oauth"
 )
 
-func AuthLayer(github *oauth.GithubConf, next http.Handler) *http.ServeMux {
+func AuthLayer(next http.Handler) *http.ServeMux {
 	mx := http.NewServeMux()
 	// explicitly set public patterns so that we don't accidently
 	// forget to protect a new endpoint
@@ -91,4 +92,10 @@ type Session struct {
 
 func (s *Session) String() string {
 	return fmt.Sprintln(s.Name, s.Email)
+}
+
+var github = oauth.GithubConf{
+	ClientID:     os.Getenv("OAUTH_GITHUB_CLIENTID"),
+	ClientSecret: os.Getenv("OAUTH_GITHUB_SECRET"),
+	RedirectURI:  os.Getenv("OAUTH_GITHUB_REDIRECT_URI"),
 }
