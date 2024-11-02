@@ -13,7 +13,7 @@ func main() {
 	bind := ":8100"
 	debug.Println("listen", bind)
 
-	github := oauth.Config{
+	github := oauth.GithubConf{
 		ClientID:     os.Getenv("OAUTH_GITHUB_CLIENTID"),
 		ClientSecret: os.Getenv("OAUTH_GITHUB_SECRET"),
 		RedirectURI:  os.Getenv("OAUTH_GITHUB_REDIRECT_URI"),
@@ -43,7 +43,7 @@ func AuthLayer(next http.Handler) *http.ServeMux {
 	return mx
 }
 
-func Endpoints(github *oauth.Config) http.Handler {
+func Endpoints(github *oauth.GithubConf) http.Handler {
 	mx := http.NewServeMux()
 	mx.Handle("/login", github.Login())
 	mx.Handle("/oauth/redirect", github.OAuthRedirect(oauthFromGithub))

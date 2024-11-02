@@ -6,33 +6,29 @@ import (
 	"net/url"
 )
 
-type Config struct {
+type GithubConf struct {
 	ClientID     string
 	ClientSecret string
 	RedirectURI  string
-
-	// optional, default https://github.com/login/oauth/authorize
-	OAuthURL string
 }
 
-func (c *Config) AuthURL() string {
-	if c.OAuthURL == "" {
-		c.OAuthURL = "https://github.com/login/oauth/authorize"
-	}
+func (c *GithubConf) AuthURL() string {
 	q := url.Values{}
 	q.Set("client_id", c.ClientID)
 	q.Set("redirect_uri", c.RedirectURI)
-	return fmt.Sprintf("%s?%s", c.OAuthURL, q.Encode())
+	return fmt.Sprintf(
+		"https://github.com/login/oauth/authorize?%s", q.Encode(),
+	)
 }
 
-func (c *Config) Login() http.HandlerFunc {
+func (c *GithubConf) Login() http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		http.Redirect(w, r, c.AuthURL(), http.StatusSeeOther)
 	}
 }
 
 // tokenURL returns github url use to get a new token
-func (c *Config) tokenURL(code string) string {
+func (c *GithubConf) tokenURL(code string) string {
 	q := url.Values{}
 	q.Set("client_id", c.ClientID)
 	q.Set("client_secret", c.ClientSecret)

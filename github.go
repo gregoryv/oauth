@@ -7,7 +7,7 @@ import (
 )
 
 // OAuthRedirect handles githubs oauth redirect_uri call.
-func (c *Config) OAuthRedirect(last func(Session) http.HandlerFunc) http.HandlerFunc {
+func (c *GithubConf) OAuthRedirect(last func(Session) http.HandlerFunc) http.HandlerFunc {
 	httpClient := http.DefaultClient
 	return func(w http.ResponseWriter, r *http.Request) {
 		if err := r.ParseForm(); err != nil {
@@ -34,7 +34,7 @@ func (c *Config) OAuthRedirect(last func(Session) http.HandlerFunc) http.Handler
 	}
 }
 
-func newToken(c *Config, code string, client *http.Client) (string, error) {
+func newToken(c *GithubConf, code string, client *http.Client) (string, error) {
 	r, err := http.NewRequest("POST", c.tokenURL(code), nil)
 	if err != nil {
 		return "", err

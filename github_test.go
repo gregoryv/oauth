@@ -3,7 +3,7 @@ package oauth
 import "testing"
 
 func xTest_tokenURL(t *testing.T) {
-	var c Config
+	var c GithubConf
 	code := "123"
 	exp := "https://..."
 	if got := c.tokenURL(code); got != exp {
