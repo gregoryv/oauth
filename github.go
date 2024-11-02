@@ -23,22 +23,19 @@ type GithubConf struct {
 
 // Login returns a handler that redirects to github authorize.
 func (c *GithubConf) Login() http.HandlerFunc {
-	return func(w http.ResponseWriter, r *http.Request) {
-		http.Redirect(w, r, c.authURL(), http.StatusSeeOther)
-	}
-}
-
-// authURL returns githubs url for oath oath authorize flow
-func (c *GithubConf) authURL() string {
 	q := url.Values{}
 	q.Set("client_id", c.ClientID)
 	q.Set("redirect_uri", c.RedirectURI)
-	return fmt.Sprintf(
+	url := fmt.Sprintf(
 		"https://github.com/login/oauth/authorize?%s", q.Encode(),
 	)
+	return func(w http.ResponseWriter, r *http.Request) {
+		http.Redirect(w, r, url, http.StatusSeeOther)
+	}
 }
 
 // Authorized handles githubs oauth redirect_uri call.
+// wip this is step two in the authorization step
 func (c *GithubConf) Authorized(enter func(string) http.HandlerFunc) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		if err := r.ParseForm(); err != nil {
@@ -58,12 +55,7 @@ func (c *GithubConf) Authorized(enter func(string) http.HandlerFunc) http.Handle
 }
 
 func (c *GithubConf) newToken(code string) (string, error) {
-	r, err := http.NewRequest("POST", c.tokenURL(code), nil)
-	if err != nil {
-		return "", err
-	}
-	r.Header.Set("accept", "application/json")
-
+	r := c.NewTokenRequest(code)
 	resp, err := http.DefaultClient.Do(r)
 	if err != nil {
 		return "", err
@@ -78,14 +70,16 @@ func (c *GithubConf) newToken(code string) (string, error) {
 	return t.AccessToken, err
 }
 
-// tokenURL returns github url use to get a new token
-func (c *GithubConf) tokenURL(code string) string {
+func (c *GithubConf) NewTokenRequest(code string) *http.Request {
 	q := url.Values{}
 	q.Set("client_id", c.ClientID)
 	q.Set("client_secret", c.ClientSecret)
 	q.Set("code", code)
 	query := q.Encode()
-	return fmt.Sprintf(
+	url := fmt.Sprintf(
 		"https://github.com/login/oauth/access_token?%s", query,
 	)
+	r, _ := http.NewRequest("POST", url, nil)
+	r.Header.Set("accept", "application/json")
+	return r
 }
