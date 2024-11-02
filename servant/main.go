@@ -14,8 +14,9 @@ func main() {
 	debug.Println("listen", bind)
 
 	github := oauth.Config{
-		ClientID:    os.Getenv("OAUTH_GITHUB_CLIENTID"),
-		RedirectURI: os.Getenv("OAUTH_GITHUB_REDIRECT_URI"),
+		ClientID:     os.Getenv("OAUTH_GITHUB_CLIENTID"),
+		ClientSecret: os.Getenv("OAUTH_GITHUB_SECRET"),
+		RedirectURI:  os.Getenv("OAUTH_GITHUB_REDIRECT_URI"),
 	}
 
 	h := logware(

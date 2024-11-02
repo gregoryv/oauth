@@ -4,12 +4,12 @@ import (
 	"fmt"
 	"net/http"
 	"net/url"
-	"os"
 )
 
 type Config struct {
-	ClientID    string
-	RedirectURI string
+	ClientID     string
+	ClientSecret string
+	RedirectURI  string
 
 	// optional, default https://github.com/login/oauth/authorize
 	OAuthURL string
@@ -34,8 +34,8 @@ func (c *Config) Login() http.HandlerFunc {
 // tokenURL returns github url use to get a new token
 func (c *Config) tokenURL(code string) string {
 	q := url.Values{}
-	q.Set("client_id", os.Getenv("OAUTH_GITHUB_CLIENTID"))
-	q.Set("client_secret", os.Getenv("OAUTH_GITHUB_SECRET"))
+	q.Set("client_id", c.ClientID)
+	q.Set("client_secret", c.ClientSecret)
 	q.Set("code", code)
 	query := q.Encode()
 	return fmt.Sprintf(
