@@ -34,18 +34,6 @@ func (c *Config) OAuthRedirect(last func(Session) http.HandlerFunc) http.Handler
 	}
 }
 
-// Once authenticated the session contains the information from
-// github.
-type Session struct {
-	Token string
-	Name  string
-	Email string
-}
-
-func (s *Session) String() string {
-	return fmt.Sprintln(s.Name, s.Email)
-}
-
 func newToken(code string, client *http.Client) (string, error) {
 	r, err := http.NewRequest("POST", tokenURL(code), nil)
 	if err != nil {
@@ -78,6 +66,18 @@ func readSession(session *Session, client *http.Client) error {
 	defer resp.Body.Close()
 
 	return json.NewDecoder(resp.Body).Decode(session)
+}
+
+// Once authenticated the session contains the information from
+// github.
+type Session struct {
+	Token string
+	Name  string
+	Email string
+}
+
+func (s *Session) String() string {
+	return fmt.Sprintln(s.Name, s.Email)
 }
 
 // inspired by
