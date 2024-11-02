@@ -1,5 +1,5 @@
 /*
-Package oauth provides http handler for authenticating via github.
+Package implements oauth flow.
 */
 package oauth
 
