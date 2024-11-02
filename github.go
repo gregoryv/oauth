@@ -2,6 +2,7 @@ package hubauth
 
 import (
 	"encoding/json"
+	"fmt"
 	"net/http"
 )
 
@@ -39,6 +40,10 @@ type Session struct {
 	Token string
 	Name  string
 	Email string
+}
+
+func (s *Session) String() string {
+	return fmt.Sprintln(s.Name, s.Email)
 }
 
 func newToken(code string, client *http.Client) (string, error) {

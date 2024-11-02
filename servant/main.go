@@ -42,6 +42,17 @@ func AuthLayer(next http.Handler) *http.ServeMux {
 	return mx
 }
 
+func Endpoints(github *hubauth.Config) http.Handler {
+	mx := http.NewServeMux()
+	mx.Handle("/login", github.Login())
+	mx.Handle("/oauth/redirect", github.OAuthRedirect(oauthFromGithub))
+	mx.Handle("/{$}", frontpage())
+
+	// should be protected in the auth layer
+	mx.Handle("/inside", inside())
+	return mx
+}
+
 func protect(next http.Handler) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		_, err := r.Cookie("token")
@@ -54,26 +65,13 @@ func protect(next http.Handler) http.HandlerFunc {
 	}
 }
 
-// ----------------------------------------
-
-func Endpoints(github *hubauth.Config) http.Handler {
-	mx := http.NewServeMux()
-	mx.Handle("/login", github.Login())
-	mx.Handle("/oauth/redirect", github.OAuthRedirect(oauthFromGithub))
-	mx.Handle("/{$}", frontpage())
-
-	// should be protected in the auth layer
-	mx.Handle("/inside", inside())
-	return mx
-}
-
 func oauthFromGithub(session hubauth.Session) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
-		debug.Println(acc.Name, acc.Email)
+		debug.Println(session)
 		expiration := time.Now().Add(5 * time.Minute)
 		cookie := http.Cookie{
 			Name:    "token",
-			Value:   acc.Token,
+			Value:   session.Token,
 			Expires: expiration,
 		}
 		http.SetCookie(w, &cookie)
