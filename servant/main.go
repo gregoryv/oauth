@@ -46,10 +46,8 @@ func AuthLayer(next http.Handler) *http.ServeMux {
 func Endpoints(github *oauth.GithubConf) http.Handler {
 	mx := http.NewServeMux()
 	mx.Handle("/login", github.Login())
-	mx.Handle("/oauth/redirect", github.OAuthRedirect(oauthFromGithub))
+	mx.Handle("/oauth/redirect", github.OAuthRedirect(enter))
 	mx.Handle("/{$}", frontpage())
-
-	// should be protected in the auth layer
 	mx.Handle("/inside", inside())
 	return mx
 }
@@ -58,7 +56,7 @@ func protect(next http.Handler) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		_, err := r.Cookie("token")
 		if err != nil {
-			debug.Print(err)
+			debug.Println(err)
 			http.Redirect(w, r, "/login", http.StatusSeeOther)
 			return
 		}
@@ -66,17 +64,26 @@ func protect(next http.Handler) http.HandlerFunc {
 	}
 }
 
-func oauthFromGithub(session oauth.Session) http.HandlerFunc {
+// enter is used after a user authenticates via github. It sets a
+// token cookie.
+func enter(session oauth.Session) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
-		debug.Println(session)
-		expiration := time.Now().Add(5 * time.Minute)
+		debug.Println(session.String())
 		cookie := http.Cookie{
-			Name:    "token",
-			Value:   session.Token,
-			Expires: expiration,
+			Name:     "token",
+			Value:    session.Token,
+			Path:     "/",
+			Expires:  time.Now().Add(15 * time.Minute),
+			HttpOnly: true,
 		}
+		// cache the session
+		sessions[session.Token] = session
+
 		http.SetCookie(w, &cookie)
-		page.ExecuteTemplate(w, "inside.html", session)
+		m := map[string]string{
+			"Location": "/inside",
+		}
+		page.ExecuteTemplate(w, "redirect.html", m)
 	}
 }
 
@@ -92,6 +99,14 @@ func frontpage() http.HandlerFunc {
 // once authenticated, the user is inside
 func inside() http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
-		page.ExecuteTemplate(w, "inside.html", nil)
+		page.ExecuteTemplate(w, "inside.html", existingSession(r))
 	}
 }
+
+func existingSession(r *http.Request) oauth.Session {
+	ck, _ := r.Cookie("token")
+	return sessions[ck.Value]
+}
+
+// token to name
+var sessions = make(map[string]oauth.Session)
