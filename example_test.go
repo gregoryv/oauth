@@ -20,6 +20,12 @@ var github = oauth.Github{
 }
 
 func enter(token string, w http.ResponseWriter, r *http.Request) {
-	// user successfully authenticated, use the token
+	if token == "" {
+		// authentication flow failed
+		http.Error(w, "login failed", http.StatusInternalServerError)
+		return
+	}
+	// user successfully authenticated, use the token to make a
+	// session, e.g. using cookies
 	w.Write([]byte("Welcome!"))
 }
