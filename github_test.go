@@ -2,6 +2,7 @@ package oauth
 
 import (
 	"encoding/json"
+	"fmt"
 	"log"
 	"net/http"
 	"net/http/httptest"
@@ -12,16 +13,37 @@ import (
 )
 
 func TestGithub_Authorize(t *testing.T) {
-	// using default client
-	g := Github{ClientID: "CID", ClientSecret: "SEC"}
-	checkAuthorize(t, &g)
+	t.Run("default client", func(t *testing.T) {
+		g := Github{ClientID: "CID", ClientSecret: "SEC"}
+		checkAuthorize(t, &g, "TOKEN")
+	})
 
-	// using our own client
-	g.Client = new(http.Client)
-	checkAuthorize(t, &g)
+	t.Run("own client", func(t *testing.T) {
+		g := Github{
+			ClientID:     "CID",
+			ClientSecret: "SEC",
+			Client:       new(http.Client),
+		}
+		checkAuthorize(t, &g, "TOKEN")
+	})
+
+	t.Run("transport error", func(t *testing.T) {
+		g := Github{
+			ClientID:     "CID",
+			ClientSecret: "SEC",
+			Client:       &http.Client{Transport: &broken{}},
+		}
+		checkAuthorize(t, &g, "")
+	})
 }
 
-func checkAuthorize(t *testing.T, g *Github) {
+type broken struct{}
+
+func (_ *broken) RoundTrip(_ *http.Request) (*http.Response, error) {
+	return nil, fmt.Errorf("broken")
+}
+
+func checkAuthorize(t *testing.T, g *Github, expToken string) {
 	t.Helper()
 	// setup fake github.com oauth server
 	fake := http.NewServeMux()
@@ -39,8 +61,8 @@ func checkAuthorize(t *testing.T, g *Github) {
 	// configure github towards the fake server
 	g.url = srv.URL
 	enter := func(token string, w http.ResponseWriter, r *http.Request) {
-		if token != "TOKEN" {
-			t.Error("got token", token, "expected TOKEN")
+		if token != expToken {
+			t.Error("got token", token, "expected", expToken)
 		}
 	}
 
