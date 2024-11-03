@@ -14,7 +14,7 @@ import (
 type Handler func(token string, w http.ResponseWriter, r *http.Request)
 
 // User returns a request to query api.github.com/user.
-func (c *Github) User(token string) *http.Request {
+func (g *Github) User(token string) *http.Request {
 	r, _ := http.NewRequest("GET", "https://api.github.com/user", nil)
 	r.Header.Set("Accept", "application/vnd.github.v3+json")
 	r.Header.Set("Authorization", "token "+token)
@@ -28,13 +28,12 @@ type Github struct {
 }
 
 // Login returns a handler that redirects to github authorize.
-func (c *Github) Login() http.HandlerFunc {
+func (g *Github) Login() http.HandlerFunc {
 	q := url.Values{}
-	q.Set("client_id", c.ClientID)
-	q.Set("redirect_uri", c.RedirectURI)
-	url := fmt.Sprintf(
-		"https://github.com/login/oauth/authorize?%s", q.Encode(),
-	)
+	q.Set("client_id", g.ClientID)
+	q.Set("redirect_uri", g.RedirectURI)
+	url := "https://github.com/login/oauth/authorize?" + q.Encode()
+
 	return func(w http.ResponseWriter, r *http.Request) {
 		http.Redirect(w, r, url, http.StatusSeeOther)
 	}
@@ -42,7 +41,7 @@ func (c *Github) Login() http.HandlerFunc {
 
 // Authorize returns a github oauth redirect_uri middleware.
 // On success Handler handler is called with the new token.
-func (c *Github) Authorize(next Handler) http.HandlerFunc {
+func (g *Github) Authorize(next Handler) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		if err := r.ParseForm(); err != nil {
 			w.WriteHeader(http.StatusBadRequest)
@@ -50,7 +49,7 @@ func (c *Github) Authorize(next Handler) http.HandlerFunc {
 		}
 		code := r.FormValue("code")
 
-		token, err := c.newToken(code)
+		token, err := g.newToken(code)
 		if err != nil {
 			w.WriteHeader(http.StatusInternalServerError)
 			return
@@ -61,16 +60,16 @@ func (c *Github) Authorize(next Handler) http.HandlerFunc {
 }
 
 // RedirectPath returns the RedirectURI path part.
-func (c *Github) RedirectPath() string {
-	u, err := url.Parse(c.RedirectURI)
+func (g *Github) RedirectPath() string {
+	u, err := url.Parse(g.RedirectURI)
 	if err != nil {
 		return ""
 	}
 	return u.Path
 }
 
-func (c *Github) newToken(code string) (string, error) {
-	r := c.newTokenRequest(code)
+func (g *Github) newToken(code string) (string, error) {
+	r := g.newTokenRequest(code)
 	resp, err := http.DefaultClient.Do(r)
 	if err != nil {
 		return "", err
@@ -85,10 +84,10 @@ func (c *Github) newToken(code string) (string, error) {
 	return t.AccessToken, err
 }
 
-func (c *Github) newTokenRequest(code string) *http.Request {
+func (g *Github) newTokenRequest(code string) *http.Request {
 	q := url.Values{}
-	q.Set("client_id", c.ClientID)
-	q.Set("client_secret", c.ClientSecret)
+	q.Set("client_id", g.ClientID)
+	q.Set("client_secret", g.ClientSecret)
 	q.Set("code", code)
 	query := q.Encode()
 	url := fmt.Sprintf(
