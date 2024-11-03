@@ -1,6 +1,7 @@
 package oauth
 
 import (
+	"log"
 	"net/http"
 	"net/http/httptest"
 	"net/http/httputil"
@@ -47,6 +48,24 @@ func TestGithub_Login(t *testing.T) {
 	exp := 303 // redirect to github
 	if got := resp.StatusCode; got != exp {
 		t.Errorf("got %v, expected %v redirect to github", got, exp)
+	}
+}
+
+func TestGithub_RedirectPath(t *testing.T) {
+	g := Github{
+		ClientID:    "CID",
+		RedirectURI: "http://example.com/from/github",
+		Debug:       log.Default(),
+	}
+	exp := "/from/github"
+	if got := g.RedirectPath(); got != exp {
+		t.Errorf("\ngot: %s\nexp: %s", got, exp)
+	}
+
+	invalid := ":s://example.com/here"
+	g.RedirectURI = invalid
+	if got := g.RedirectPath(); got != "" {
+		t.Error("invalid uri should return empty", got)
 	}
 }
 

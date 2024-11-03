@@ -64,6 +64,7 @@ func (g *Github) Authorize(next Handler) http.HandlerFunc {
 func (g *Github) RedirectPath() string {
 	u, err := url.Parse(g.RedirectURI)
 	if err != nil {
+		warn(g.Debug, err)
 		return ""
 	}
 	return u.Path
