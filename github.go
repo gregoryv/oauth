@@ -6,11 +6,13 @@ package oauth
 import (
 	"encoding/json"
 	"fmt"
+	"log"
 	"net/http"
 	"net/url"
 )
 
-// Handler is used once authorized.
+// Handler is used once oauth sequence is done. If token is empty
+// something failed.
 type Handler func(token string, w http.ResponseWriter, r *http.Request)
 
 // User returns a request to query api.github.com/user.
@@ -25,6 +27,9 @@ type Github struct {
 	ClientID     string
 	ClientSecret string
 	RedirectURI  string
+
+	// Optional
+	Debug *log.Logger
 }
 
 // Login returns a handler that redirects to github authorize.
@@ -43,17 +48,11 @@ func (g *Github) Login() http.HandlerFunc {
 // On success Handler handler is called with the new token.
 func (g *Github) Authorize(next Handler) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
-		if err := r.ParseForm(); err != nil {
-			w.WriteHeader(http.StatusBadRequest)
-			return
-		}
+		err := r.ParseForm()
+		warn(g.Debug, err)
 		code := r.FormValue("code")
 
-		token, err := g.newToken(code)
-		if err != nil {
-			w.WriteHeader(http.StatusInternalServerError)
-			return
-		}
+		token := g.newToken(code)
 
 		next(token, w, r)
 	}
@@ -68,11 +67,12 @@ func (g *Github) RedirectPath() string {
 	return u.Path
 }
 
-func (g *Github) newToken(code string) (string, error) {
+func (g *Github) newToken(code string) string {
 	r := g.newTokenRequest(code)
 	resp, err := http.DefaultClient.Do(r)
 	if err != nil {
-		return "", err
+		warn(g.Debug, err)
+		return ""
 	}
 	defer resp.Body.Close()
 
@@ -81,7 +81,8 @@ func (g *Github) newToken(code string) (string, error) {
 		AccessToken string `json:"access_token"`
 	}
 	err = json.NewDecoder(resp.Body).Decode(&t)
-	return t.AccessToken, err
+	warn(g.Debug, err)
+	return t.AccessToken
 }
 
 func (g *Github) newTokenRequest(code string) *http.Request {
@@ -96,4 +97,14 @@ func (g *Github) newTokenRequest(code string) *http.Request {
 	r, _ := http.NewRequest("POST", url, nil)
 	r.Header.Set("accept", "application/json")
 	return r
+}
+
+func warn(log *log.Logger, err error) {
+	if err == nil {
+		return
+	}
+	if log == nil {
+		return
+	}
+	log.Output(1, err.Error())
 }
