@@ -5,7 +5,6 @@ package oauth
 
 import (
 	"encoding/json"
-	"fmt"
 	"log"
 	"net/http"
 	"net/url"
@@ -90,11 +89,8 @@ func (g *Github) newTokenRequest(code string) *http.Request {
 	q.Set("client_id", g.ClientID)
 	q.Set("client_secret", g.ClientSecret)
 	q.Set("code", code)
-	query := q.Encode()
-	url := fmt.Sprintf(
-		"https://github.com/login/oauth/access_token?%s", query,
-	)
-	r, _ := http.NewRequest("POST", url, nil)
+	url := "https://github.com/login/oauth/access_token?" + q.Encode()
+	r, _ := http.NewRequest("POST", url, http.NoBody)
 	r.Header.Set("accept", "application/json")
 	return r
 }
