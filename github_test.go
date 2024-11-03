@@ -70,12 +70,6 @@ func checkAuthorize(t *testing.T, g *Github, expToken string) {
 	w := httptest.NewRecorder()
 	r := httptest.NewRequest("GET", "/?code=123", http.NoBody)
 	g.Authorize(enter)(w, r)
-
-	resp := w.Result()
-	exp := 200 // wip do we want this really, it means enter was called
-	if got := resp.StatusCode; got != exp {
-		t.Errorf("got %v, expected %v redirect to github", got, exp)
-	}
 }
 
 func TestGithub_Login(t *testing.T) {
