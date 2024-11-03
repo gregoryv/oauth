@@ -1,6 +1,7 @@
 package oauth
 
 import (
+	"encoding/json"
 	"log"
 	"net/http"
 	"net/http/httptest"
@@ -11,23 +12,32 @@ import (
 )
 
 func TestGithub_Authorize(t *testing.T) {
-	g := Github{ClientID: "CID", ClientSecret: "SEC"}
-	fakeServer := func(w http.ResponseWriter, r *http.Request) {
-		t.Logf("%s %v", r.Method, r.URL)
-	}
-	srv := httptest.NewServer(http.HandlerFunc(fakeServer))
+	// setup fake github.com oauth server
+	fake := http.NewServeMux()
+	fake.HandleFunc("/login/oauth/access_token",
+		func(w http.ResponseWriter, r *http.Request) {
+			t.Logf("%s %v", r.Method, r.URL)
+			json.NewEncoder(w).Encode(map[string]string{
+				"access_token": "TOKEN",
+			})
+		},
+	)
+	srv := httptest.NewServer(fake)
 	defer srv.Close()
+
+	// configure github towards the fake server
+	g := Github{ClientID: "CID", ClientSecret: "SEC"}
 	g.url = srv.URL
 	enter := func(token string, w http.ResponseWriter, r *http.Request) {
-		if token != "" { // should be empty
-			t.Error("got token", token)
+		if token != "TOKEN" {
+			t.Error("got token", token, "expected TOKEN")
 		}
 	}
-	h := g.Authorize(enter)
 
+	// github GET to our redirect_uri, handled by Authorize
 	w := httptest.NewRecorder()
 	r := httptest.NewRequest("GET", "/?code=123", http.NoBody)
-	h(w, r)
+	g.Authorize(enter)(w, r)
 
 	resp := w.Result()
 	exp := 200 // wip do we want this really, it means enter was called
