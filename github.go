@@ -30,6 +30,9 @@ type Github struct {
 	// Optional
 	Debug *log.Logger
 
+	// Optional, defaults to http.DefaultClient
+	Client *http.Client
+
 	// optional override during testing, default https://github.com
 	url string
 }
@@ -72,7 +75,7 @@ func (g *Github) RedirectPath() string {
 
 func (g *Github) newToken(code string) string {
 	r := g.newTokenRequest(code)
-	resp, err := http.DefaultClient.Do(r)
+	resp, err := g.client().Do(r)
 	if err != nil {
 		warn(g.Debug, err)
 		return ""
@@ -97,6 +100,13 @@ func (g *Github) newTokenRequest(code string) *http.Request {
 	r, _ := http.NewRequest("POST", url, http.NoBody)
 	r.Header.Set("accept", "application/json")
 	return r
+}
+
+func (g *Github) client() *http.Client {
+	if g.Client != nil {
+		return g.Client
+	}
+	return http.DefaultClient
 }
 
 func warn(log *log.Logger, err error) {
