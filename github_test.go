@@ -7,9 +7,8 @@ import (
 	"net/http"
 	"net/http/httptest"
 	"net/http/httputil"
+	"strings"
 	"testing"
-
-	"github.com/gregoryv/golden"
 )
 
 func TestGithub_Authorize(t *testing.T) {
@@ -105,9 +104,18 @@ func TestGithub_RedirectPath(t *testing.T) {
 	}
 }
 
-func TestGithub_User(t *testing.T) {
+func ExampleGithub_User() {
 	var g Github
-	r := g.User("... token ...")
+	r := g.User("TTT")
+	dumpRequest(r)
+	// output:
+	// GET /user HTTP/1.1
+	// Host: api.github.com
+	// Accept: application/vnd.github.v3+json
+	// Authorization: token TTT
+}
+
+func dumpRequest(r *http.Request) {
 	data, _ := httputil.DumpRequest(r, false)
-	golden.AssertWith(t, string(data), "testdata/github_user.http")
+	fmt.Print(strings.ReplaceAll(string(data), "\r", ""))
 }
