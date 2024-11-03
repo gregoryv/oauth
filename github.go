@@ -1,6 +1,4 @@
-/*
-Package implements oauth flow.
-*/
+// Package gregoryv/oauth implements oauth flow for github.
 package oauth
 
 import (
