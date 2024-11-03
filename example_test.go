@@ -8,15 +8,19 @@ import (
 )
 
 func Example_github() {
+	// configure github oauth, https://github.com/settings/developers
+	github := oauth.Github{
+		ClientID:     os.Getenv("OAUTH_GITHUB_CLIENTID"),
+		ClientSecret: os.Getenv("OAUTH_GITHUB_SECRET"),
+		RedirectURI:  "http://example.com/oauth/fromgithub",
+	}
+	// register two handlers on your server
+	// first will redirect to github
 	http.Handle("GET /login", github.Login())
+	// second will handle the request from github to initiate
+	// authentication
 	http.Handle("GET "+github.RedirectPath(), github.Authorize(enter))
 	http.ListenAndServe(":8080", nil)
-}
-
-var github = oauth.Github{
-	ClientID:     os.Getenv("OAUTH_GITHUB_CLIENTID"),
-	ClientSecret: os.Getenv("OAUTH_GITHUB_SECRET"),
-	RedirectURI:  "http://example.com/oauth/fromgithub",
 }
 
 func enter(token string, w http.ResponseWriter, r *http.Request) {
