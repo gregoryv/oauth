@@ -12,6 +12,17 @@ import (
 )
 
 func TestGithub_Authorize(t *testing.T) {
+	// using default client
+	g := Github{ClientID: "CID", ClientSecret: "SEC"}
+	checkAuthorize(t, &g)
+
+	// using our own client
+	g.Client = new(http.Client)
+	checkAuthorize(t, &g)
+}
+
+func checkAuthorize(t *testing.T, g *Github) {
+	t.Helper()
 	// setup fake github.com oauth server
 	fake := http.NewServeMux()
 	fake.HandleFunc("/login/oauth/access_token",
@@ -26,7 +37,6 @@ func TestGithub_Authorize(t *testing.T) {
 	defer srv.Close()
 
 	// configure github towards the fake server
-	g := Github{ClientID: "CID", ClientSecret: "SEC"}
 	g.url = srv.URL
 	enter := func(token string, w http.ResponseWriter, r *http.Request) {
 		if token != "TOKEN" {
