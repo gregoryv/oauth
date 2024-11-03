@@ -10,13 +10,19 @@ import (
 )
 
 func TestGithub_Authorize(t *testing.T) {
-	gh := Github{}
+	g := Github{ClientID: "CID", ClientSecret: "SEC"}
+	fakeServer := func(w http.ResponseWriter, r *http.Request) {
+		t.Logf("%s %v", r.Method, r.URL)
+	}
+	srv := httptest.NewServer(http.HandlerFunc(fakeServer))
+	defer srv.Close()
+	g.url = srv.URL
 	enter := func(token string, w http.ResponseWriter, r *http.Request) {
 		if token != "" { // should be empty
 			t.Error("got token", token)
 		}
 	}
-	h := gh.Authorize(enter)
+	h := g.Authorize(enter)
 
 	w := httptest.NewRecorder()
 	r := httptest.NewRequest("GET", "/?code=123", http.NoBody)
@@ -30,7 +36,7 @@ func TestGithub_Authorize(t *testing.T) {
 }
 
 func TestGithub_Login(t *testing.T) {
-	g := Github{}
+	var g Github
 	h := g.Login()
 
 	w := httptest.NewRecorder()
@@ -44,7 +50,7 @@ func TestGithub_Login(t *testing.T) {
 	}
 }
 
-func TestGithubUser(t *testing.T) {
+func TestGithub_User(t *testing.T) {
 	var g Github
 	r := g.User("... token ...")
 	data, _ := httputil.DumpRequest(r, false)

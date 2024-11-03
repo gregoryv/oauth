@@ -29,6 +29,9 @@ type Github struct {
 
 	// Optional
 	Debug *log.Logger
+
+	// optional override during testing, default https://github.com
+	url string
 }
 
 // Login returns a handler that redirects to github authorize.
@@ -36,7 +39,7 @@ func (g *Github) Login() http.HandlerFunc {
 	q := url.Values{}
 	q.Set("client_id", g.ClientID)
 	q.Set("redirect_uri", g.RedirectURI)
-	url := "https://github.com/login/oauth/authorize?" + q.Encode()
+	url := g.host() + "/login/oauth/authorize?" + q.Encode()
 
 	return func(w http.ResponseWriter, r *http.Request) {
 		http.Redirect(w, r, url, http.StatusSeeOther)
@@ -89,7 +92,7 @@ func (g *Github) newTokenRequest(code string) *http.Request {
 	q.Set("client_id", g.ClientID)
 	q.Set("client_secret", g.ClientSecret)
 	q.Set("code", code)
-	url := "https://github.com/login/oauth/access_token?" + q.Encode()
+	url := g.host() + "/login/oauth/access_token?" + q.Encode()
 	r, _ := http.NewRequest("POST", url, http.NoBody)
 	r.Header.Set("accept", "application/json")
 	return r
@@ -103,4 +106,11 @@ func warn(log *log.Logger, err error) {
 		return
 	}
 	log.Output(1, err.Error())
+}
+
+func (g *Github) host() string {
+	if g.url != "" {
+		return g.url
+	}
+	return "https://github.com"
 }

@@ -1,0 +1,61 @@
+<svg
+  xmlns="http://www.w3.org/2000/svg"
+  xmlns:xlink="http://www.w3.org/1999/xlink"
+  font-family="Arial,Helvetica,sans-serif" width="623" height="304">
+<path stroke="#d3d3d3" fill="#ffffcc" d="M320,50 v 41 h 98 v -31 l -10,-10 L 320,50 M418,60 h -10 v -10"/>
+<text font-family="Arial,Helvetica,sans-serif" font-size="12px" x="330" y="66">Github.Login()</text>
+<text font-family="Arial,Helvetica,sans-serif" font-size="12px" x="330" y="82"></text>
+
+<path stroke="#d3d3d3" fill="#ffffcc" d="M180,150 v 153 h 119 v -143 l -10,-10 L 180,150 M299,160 h -10 v -10"/>
+<text font-family="Arial,Helvetica,sans-serif" font-size="12px" x="190" y="166">Github.Authorize()</text>
+<text font-family="Arial,Helvetica,sans-serif" font-size="12px" x="190" y="182"></text>
+<text font-family="Arial,Helvetica,sans-serif" font-size="12px" x="190" y="198"></text>
+<text font-family="Arial,Helvetica,sans-serif" font-size="12px" x="190" y="214"></text>
+<text font-family="Arial,Helvetica,sans-serif" font-size="12px" x="190" y="230"></text>
+<text font-family="Arial,Helvetica,sans-serif" font-size="12px" x="190" y="246"></text>
+<text font-family="Arial,Helvetica,sans-serif" font-size="12px" x="190" y="262"></text>
+<text font-family="Arial,Helvetica,sans-serif" font-size="12px" x="190" y="278"></text>
+<text font-family="Arial,Helvetica,sans-serif" font-size="12px" x="190" y="294"></text>
+
+<path stroke="#d3d3d3" d="M32,24 L32,288" />
+
+<text font-family="Arial,Helvetica,sans-serif" font-size="12px" x="10" y="18">Browser</text>
+<path stroke="#d3d3d3" d="M312,24 L312,288" />
+
+<text font-family="Arial,Helvetica,sans-serif" font-size="12px" x="281" y="18">Your server</text>
+<path stroke="#d3d3d3" d="M592,24 L592,288" />
+
+<text font-family="Arial,Helvetica,sans-serif" font-size="12px" x="562" y="18">github.com</text>
+<path stroke="black" d="M32,57 L312,57" />
+<g transform="rotate(90 312 57)"><path stroke="black" fill="#ffffff" d="M308,65 l4,-8 l 4,8 Z" /></g>
+
+<text font-family="Arial,Helvetica,sans-serif" font-size="12px" x="143" y="54">GET /login</text>
+<path stroke-dasharray="5,5" stroke="black" d="M312,90 L32,90" />
+<g transform="rotate(270 32 90)"><path stroke="black" fill="#ffffff" d="M28,98 l4,-8 l 4,8 Z" /></g>
+
+<text font-family="Arial,Helvetica,sans-serif" font-size="12px" x="128" y="87">303 .../authorize</text>
+<path stroke="black" d="M32,123 L592,123" />
+<g transform="rotate(90 592 123)"><path stroke="black" fill="#ffffff" d="M588,131 l4,-8 l 4,8 Z" /></g>
+
+<text font-family="Arial,Helvetica,sans-serif" font-size="12px" x="148" y="120">GET /login/oauth/authorize?client_id=...&amp;redirect_uri=...</text>
+<path stroke="black" d="M592,156 L312,156" />
+<g transform="rotate(270 312 156)"><path stroke="black" fill="#ffffff" d="M308,164 l4,-8 l 4,8 Z" /></g>
+
+<text font-family="Arial,Helvetica,sans-serif" font-size="12px" x="378" y="153">GET {redirect_uri}?code=...</text>
+<path stroke="black" d="M312,189 L592,189" />
+<g transform="rotate(90 592 189)"><path stroke="black" fill="#ffffff" d="M588,197 l4,-8 l 4,8 Z" /></g>
+
+<text font-family="Arial,Helvetica,sans-serif" font-size="12px" x="325" y="186">GET /login/oauth/access_token?code=...&amp;</text>
+<text font-family="Arial,Helvetica,sans-serif" font-size="12px" x="325" y="202">client_id=...&amp;client_secret=...</text>
+<path stroke-dasharray="5,5" stroke="black" d="M592,222 L312,222" />
+<g transform="rotate(270 312 222)"><path stroke="black" fill="#ffffff" d="M308,230 l4,-8 l 4,8 Z" /></g>
+
+<text font-family="Arial,Helvetica,sans-serif" font-size="12px" x="416" y="219">access token</text>
+<path stroke="black" d="M312,255 L327,255" />
+
+<path stroke="black" d="M327,255 L327,287" />
+
+<path stroke="black" d="M327,287 L312,287" />
+<g transform="rotate(270 312 287)"><path stroke="black" fill="#ffffff" d="M308,295 l4,-8 l 4,8 Z" /></g>
+
+<text font-family="Arial,Helvetica,sans-serif" font-size="12px" x="333" y="274">Handle(token, ...)</text></svg>

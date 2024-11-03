@@ -5,4 +5,4 @@ be noted in this file.
 
 ## [0.1.0-dev]
 
-- Add type GithubConf
+- Add type Github
