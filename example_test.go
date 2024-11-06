@@ -20,7 +20,7 @@ func Example_github() {
 	// second will handle the request from github to initiate
 	// authentication
 	http.Handle("GET "+github.RedirectPath(), github.Authorize(enter))
-	http.ListenAndServe(":8080", nil)
+	_ = http.ListenAndServe(":8080", nil)
 }
 
 func enter(token string, w http.ResponseWriter, r *http.Request) {
@@ -31,5 +31,5 @@ func enter(token string, w http.ResponseWriter, r *http.Request) {
 	}
 	// user successfully authenticated, use the token to make a
 	// session, e.g. using cookies
-	w.Write([]byte("Welcome!"))
+	_, _ = w.Write([]byte("Welcome!"))
 }

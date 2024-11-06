@@ -114,7 +114,7 @@ func warn(log *log.Logger, err error) {
 	if log == nil {
 		return
 	}
-	log.Output(1, err.Error())
+	_ = log.Output(1, err.Error())
 }
 
 func (g *Github) host() string {

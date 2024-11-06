@@ -49,7 +49,7 @@ func checkAuthorize(t *testing.T, g *Github, expToken string) {
 	fake.HandleFunc("/login/oauth/access_token",
 		func(w http.ResponseWriter, r *http.Request) {
 			t.Logf("%s %v", r.Method, r.URL)
-			json.NewEncoder(w).Encode(map[string]string{
+			_ = json.NewEncoder(w).Encode(map[string]string{
 				"access_token": "TOKEN",
 			})
 		},
